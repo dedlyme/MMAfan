@@ -10,6 +10,7 @@ use App\Http\Controllers\RankingController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PoundController;
 use App\Http\Controllers\Admin\PoundAdminController;
+use App\Http\Controllers\CalendarController;
 
 /* ------------------------------
     Admin Pound for Pound CRUD
@@ -180,10 +181,18 @@ Route::middleware('auth')->group(function () {
 });
 
 /* ------------------------------
-    Pound for Pound Route (parastie lietotāji)
+    Pound for Pound Route
 --------------------------------*/
 Route::middleware('auth')->group(function () {
     Route::get('/pound', [PoundController::class, 'index'])->name('pound');
+});
+
+/* ------------------------------
+    Calendar Route
+--------------------------------*/
+Route::middleware('auth')->group(function () {
+    // Optional: navigate months
+    Route::get('/calendar/{month?}/{year?}', [CalendarController::class, 'index'])->name('calendar');
 });
 
 require __DIR__.'/auth.php';

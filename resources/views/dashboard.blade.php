@@ -145,6 +145,7 @@
         <a href="{{ route('ranking') }}" class="block text-white hover:text-yellow-400">Ranking</a>
         <a href="{{ route('pound') }}" class="block text-white hover:text-yellow-400">Pound for Pound</a>
         <a href="{{ route('news') }}" class="block text-white hover:text-yellow-400">News</a>
+        <a href="{{ route('calendar') }}" class="block text-white hover:text-yellow-400">Calendar</a>
         @if(auth()->check() && auth()->user()->is_admin)
             <a href="{{ route('admin.divisions.index') }}" class="block text-white hover:text-yellow-400">Divisions</a>
         @endif
