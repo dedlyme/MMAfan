@@ -9,6 +9,7 @@ use App\Models\Ranking;
 
 class AdminRankingController extends Controller
 {
+    // Pievieno jaunu fighter divīzijai
     public function store(Request $request, Division $division)
     {
         $request->validate([
@@ -23,16 +24,17 @@ class AdminRankingController extends Controller
 
         $division->rankings()->create([
             'fighter_name' => $request->fighter_name,
-            'rank' => $request->rank,
+            'rank' => $request->rank ?? ($division->rankings()->count() + 1),
             'is_champion' => $request->is_champion ?? false,
         ]);
 
-        return back();
+        return back()->with('success', 'Fighter added successfully.');
     }
 
+    // Dzēš fighter
     public function destroy(Ranking $ranking)
     {
         $ranking->delete();
-        return back();
+        return back()->with('success', 'Fighter deleted successfully.');
     }
 }

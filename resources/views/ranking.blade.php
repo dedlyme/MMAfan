@@ -64,6 +64,15 @@
                     </a>
                 </li>
 
+                <!-- Dream Fights Link -->
+                <li>
+                    <a href="{{ route('dreamfights.index') }}" 
+                       class="relative text-white hover:text-yellow-400 transition group">
+                        Dream Fights
+                        <span class="absolute left-0 -bottom-1 w-0 h-0.5 bg-yellow-400 transition-all group-hover:w-full"></span>
+                    </a>
+                </li>
+
                 @if(auth()->check() && auth()->user()->is_admin)
                     <li>
                         <a href="{{ route('admin.divisions.index') }}" 
@@ -112,6 +121,8 @@
         <a href="{{ route('ranking') }}" class="block text-white hover:text-yellow-400">Ranking</a>
         <a href="{{ route('pound') }}" class="block text-white hover:text-yellow-400">Pound for Pound</a>
         <a href="{{ route('news') }}" class="block text-white hover:text-yellow-400">News</a>
+        <!-- Dream Fights Link -->
+        <a href="{{ route('dreamfights.index') }}" class="block text-white hover:text-yellow-400">Dream Fights</a>
         @if(auth()->check() && auth()->user()->is_admin)
             <a href="{{ route('admin.divisions.index') }}" class="block text-white hover:text-yellow-400">Divisions</a>
         @endif

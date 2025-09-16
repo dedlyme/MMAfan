@@ -11,6 +11,8 @@ use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PoundController;
 use App\Http\Controllers\Admin\PoundAdminController;
 use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\Admin\AdminRankingController;
+use App\Http\Controllers\DreamfightController;
 
 /* ------------------------------
     Admin Pound for Pound CRUD
@@ -20,6 +22,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::post('/pound', [PoundAdminController::class, 'store'])->name('pound.store');
     Route::patch('/pound/{fighter}', [PoundAdminController::class, 'update'])->name('pound.update');
     Route::delete('/pound/{fighter}', [PoundAdminController::class, 'destroy'])->name('pound.destroy');
+
+    // **Jauns maršruts visiem cīkstoņiem “Save All”**
+    Route::patch('/pound/update-all', [PoundAdminController::class, 'updateAll'])
+        ->name('pound.updateAll');
 });
 
 /* ------------------------------
@@ -83,8 +89,6 @@ Route::get('/ranking/{division}', function (Division $division) {
     Admin Divisions + Fighters CRUD
 --------------------------------*/
 Route::middleware('auth')->group(function () {
-
-    // Divisions index
     Route::get('/admin/divisions', function () {
         $user = auth()->user();
         if (!$user || !$user->is_admin) abort(403, 'Unauthorized');
@@ -93,59 +97,28 @@ Route::middleware('auth')->group(function () {
         return view('admin.divisions.index', compact('divisions'));
     })->name('admin.divisions.index');
 
-    // Divisions store
     Route::post('/admin/divisions', function (Request $request) {
         $user = auth()->user();
         if (!$user || !$user->is_admin) abort(403, 'Unauthorized');
-
         $request->validate(['name' => 'required|string|max:255']);
         Division::create(['name' => $request->name]);
-
         return redirect()->route('admin.divisions.index');
     })->name('admin.divisions.store');
 
-    // Divisions destroy
+    Route::delete('/admin/rankings/{ranking}', [AdminRankingController::class, 'destroy'])->name('admin.fighters.destroy');
+
     Route::delete('/admin/divisions/{division}', function (Division $division) {
         $user = auth()->user();
         if (!$user || !$user->is_admin) abort(403, 'Unauthorized');
-
         $division->delete();
         return redirect()->route('admin.divisions.index');
     })->name('admin.divisions.destroy');
 
-    // Fighters CRUD – top16 ar čempionu
-    Route::post('/admin/divisions/{division}/rankings', function (Request $request, Division $division) {
-        $user = auth()->user();
-        if (!$user || !$user->is_admin) abort(403, 'Unauthorized');
+    Route::post('/admin/divisions/{division}/rankings', [AdminRankingController::class, 'store'])->name('admin.rankings.store');
 
-        $request->validate(['fighter_name' => 'required|string|max:255']);
-        $totalFighters = $division->rankings()->count();
-        if ($totalFighters >= 16) return back()->withErrors(['limit' => 'Top 16 is full.']);
-
-        $isChampion = ($totalFighters + 1 == 16);
-        $division->rankings()->create([
-            'fighter_name' => $request->fighter_name,
-            'rank' => $totalFighters + 1,
-            'is_champion' => $isChampion,
-        ]);
-
-        return back();
-    })->name('admin.rankings.store');
-
-    // Fighters dzēšana
-    Route::delete('/admin/rankings/{ranking}', function (Ranking $ranking) {
-        $user = auth()->user();
-        if (!$user || !$user->is_admin) abort(403, 'Unauthorized');
-
-        $ranking->delete();
-        return back();
-    })->name('admin.rankings.destroy');
-
-    // Admin Divisions Update
     Route::patch('/admin/divisions/{division}', function (Request $request, Division $division) {
         $user = auth()->user();
         if (!$user || !$user->is_admin) abort(403, 'Unauthorized');
-
         $request->validate(['name' => 'required|string|max:255']);
         $division->update(['name' => $request->name]);
 
@@ -188,11 +161,26 @@ Route::middleware('auth')->group(function () {
 });
 
 /* ------------------------------
-    Calendar Route
+    Dreamfights Routes
 --------------------------------*/
-Route::middleware('auth')->group(function () {
-    // Optional: navigate months
-    Route::get('/calendar/{month?}/{year?}', [CalendarController::class, 'index'])->name('calendar');
+Route::middleware('auth')->prefix('dreamfights')->name('dreamfights.')->group(function () {
+    Route::get('/', [DreamfightController::class, 'index'])->name('index');
+    Route::post('/', [DreamfightController::class, 'store'])->name('store');
+    Route::get('/{dreamfight}/edit', [DreamfightController::class, 'edit'])->name('edit');
+    Route::patch('/{dreamfight}', [DreamfightController::class, 'update'])->name('update');
+    Route::resource('dreamfights', DreamfightController::class);
+    Route::delete('/{dreamfight}', [DreamfightController::class, 'destroy'])->name('destroy');
 });
+
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/pound', [PoundAdminController::class, 'index'])->name('pound.index');
+    Route::post('/pound', [PoundAdminController::class, 'store'])->name('pound.store');
+    Route::patch('/pound/{fighter}', [PoundAdminController::class, 'update'])->name('pound.update');
+    Route::delete('/pound/{fighter}', [PoundAdminController::class, 'destroy'])->name('pound.destroy');
+
+    // Save All
+    Route::patch('/pound/update-all', [PoundAdminController::class, 'updateAll'])->name('pound.updateAll');
+});
+
 
 require __DIR__.'/auth.php';
