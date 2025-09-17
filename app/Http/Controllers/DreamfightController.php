@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Cache;
 class DreamfightController extends Controller
 {
     // Rāda visas dream fights un formu jaunas cīņas izveidei
-    public function index()
+    public function index(Request $request)
     {
         // Kešo visu cīkstoņu sarakstu uz 6 stundām
         $fighters = Cache::remember('fighters_list', 21600, function () {
@@ -32,7 +32,15 @@ class DreamfightController extends Controller
                 ->values();
         });
 
-        $dreamfights = Dreamfight::latest()->with('user')->get();
+        // Ja ir filtrs pēc username
+        $query = Dreamfight::query()->with('user');
+        if ($request->filled('username')) {
+            $query->whereHas('user', function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->username . '%');
+            });
+        }
+
+        $dreamfights = $query->latest()->get();
 
         return view('dreamfights', compact('fighters', 'dreamfights'));
     }
@@ -57,12 +65,10 @@ class DreamfightController extends Controller
     // Rediģē cīņu
     public function edit(Dreamfight $dreamfight)
     {
-        // Tikai admins vai cīņas autors var rediģēt
-        if (Auth::user()->is_admin !== 1 && $dreamfight->user_id !== Auth::id()) {
+        if (!Auth::user()->is_admin && $dreamfight->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Ja kešā nav, atjauno
         $fighters = Cache::remember('fighters_list', 21600, function () {
             $data = Http::get('https://api.sportsdata.io/v3/mma/scores/json/FightersBasic?key=d966c6cdce8143da883523ed754cd488')->json();
 
@@ -87,7 +93,7 @@ class DreamfightController extends Controller
     // Atjaunina cīņu
     public function update(Request $request, Dreamfight $dreamfight)
     {
-        if (Auth::user()->is_admin !== 1 && $dreamfight->user_id !== Auth::id()) {
+        if (!Auth::user()->is_admin && $dreamfight->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -107,7 +113,7 @@ class DreamfightController extends Controller
     // Dzēš cīņu
     public function destroy(Dreamfight $dreamfight)
     {
-        if (Auth::user()->is_admin !== 1 && $dreamfight->user_id !== Auth::id()) {
+        if (!Auth::user()->is_admin && $dreamfight->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
 
