@@ -1,37 +1,30 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'UFC MMA Dashboard')</title>
+    @vite('resources/css/app.css')
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+    <!-- Navbar -->
+    @include('partials.navbar')
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl mx-auto px-6 py-8 space-y-8">
+        @yield('content')
+    </main>
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
-
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
-
-            <!-- Page Content -->
-            <main>
-            @yield('content')
-
-            </main>
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-400 py-6 mt-auto">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+            <p>&copy; {{ date('Y') }} UFC MMA. All rights reserved.</p>
+           
         </div>
-    </body>
+    </footer>
+
+    @vite('resources/js/app.js')
+    @stack('scripts')
+</body>
 </html>
