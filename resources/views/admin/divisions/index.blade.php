@@ -128,6 +128,22 @@
             menu.classList.toggle('hidden');
         });
     }
+
+    // Ensure only one champion per division
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[id^="edit-division-"]').forEach(divisionForm => {
+            const championCheckboxes = divisionForm.querySelectorAll('input[type="checkbox"][name*="[is_champion]"]');
+            championCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    if (checkbox.checked) {
+                        championCheckboxes.forEach(cb => {
+                            if (cb !== checkbox) cb.checked = false;
+                        });
+                    }
+                });
+            });
+        });
+    });
 </script>
 @endpush
 @endsection
