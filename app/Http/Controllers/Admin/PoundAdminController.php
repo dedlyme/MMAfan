@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -33,6 +34,7 @@ class PoundAdminController extends Controller
         ]);
 
         $fighter->update($request->only('fighter_name', 'rank'));
+
         return back();
     }
 

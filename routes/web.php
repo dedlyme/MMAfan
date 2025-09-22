@@ -23,9 +23,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::patch('/pound/{fighter}', [PoundAdminController::class, 'update'])->name('pound.update');
     Route::delete('/pound/{fighter}', [PoundAdminController::class, 'destroy'])->name('pound.destroy');
 
-    // **Jauns maršruts visiem cīkstoņiem “Save All”**
-    Route::patch('/pound/update-all', [PoundAdminController::class, 'updateAll'])
-        ->name('pound.updateAll');
+    // Save All
+    Route::patch('/pound/update-all', [PoundAdminController::class, 'updateAll'])->name('pound.updateAll');
 });
 
 /* ------------------------------
@@ -74,13 +73,13 @@ Route::middleware('auth')->group(function () {
         ->name('admin.rankings.updateOrder');
 });
 
-// Rāda visas divīzijas
+// Show all divisions
 Route::get('/ranking', function () {
     $divisions = Division::all();
     return view('ranking', compact('divisions'));
 })->name('ranking');
 
-// Rāda konkrētu divīziju ar top 16 + čempionu
+// Show specific division with top 16 + champion
 Route::get('/ranking/{division}', function (Division $division) {
     return view('ranking', compact('division'));
 })->name('ranking.show');
@@ -182,5 +181,6 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::patch('/pound/update-all', [PoundAdminController::class, 'updateAll'])->name('pound.updateAll');
 });
 
+Route::patch('/admin/pound/bulk-update', [PoundAdminController::class, 'bulkUpdate'])->name('admin.pound.bulkUpdate');
 
 require __DIR__.'/auth.php';
