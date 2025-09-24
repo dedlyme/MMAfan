@@ -28,15 +28,19 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 });
 
 /* ------------------------------
-    Viesu lapa un Dashboard
+    Guest Welcome Page
 --------------------------------*/
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+/* ------------------------------
+    Live Chat (Dashboard)
+--------------------------------*/
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', [ChatController::class, 'fetch'])->name('dashboard');
+    Route::post('/messages', [ChatController::class, 'send'])->name('messages.send');
+});
 
 /* ------------------------------
     Profile CRUD
@@ -45,16 +49,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-/* ------------------------------
-    Chat routes
---------------------------------*/
-Route::middleware('auth')->group(function () {
-    Route::get('/messages', [ChatController::class, 'fetch']);
-    Route::post('/messages', [ChatController::class, 'send']);
-    Route::get('/dashboard', [ChatController::class, 'fetch'])->name('dashboard');
-    Route::post('/messages', [ChatController::class, 'send'])->name('messages.send');
 });
 
 /* ------------------------------
@@ -67,22 +61,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/ranking/{ranking}', [RankingController::class, 'update'])->name('ranking.update');
 });
 
-// Admin Divisions ranking order
 Route::middleware('auth')->group(function () {
     Route::patch('/admin/divisions/{division}/rankings/order', [RankingController::class, 'updateOrder'])
         ->name('admin.rankings.updateOrder');
 });
-
-// Show all divisions
-Route::get('/ranking', function () {
-    $divisions = Division::all();
-    return view('ranking', compact('divisions'));
-})->name('ranking');
-
-// Show specific division with top 16 + champion
-Route::get('/ranking/{division}', function (Division $division) {
-    return view('ranking', compact('division'));
-})->name('ranking.show');
 
 /* ------------------------------
     Admin Divisions + Fighters CRUD
@@ -160,27 +142,14 @@ Route::middleware('auth')->group(function () {
 });
 
 /* ------------------------------
-    Dreamfights Routes
+    Dreamfights Routes (Fixed)
 --------------------------------*/
 Route::middleware('auth')->prefix('dreamfights')->name('dreamfights.')->group(function () {
     Route::get('/', [DreamfightController::class, 'index'])->name('index');
     Route::post('/', [DreamfightController::class, 'store'])->name('store');
     Route::get('/{dreamfight}/edit', [DreamfightController::class, 'edit'])->name('edit');
     Route::patch('/{dreamfight}', [DreamfightController::class, 'update'])->name('update');
-    Route::resource('dreamfights', DreamfightController::class);
     Route::delete('/{dreamfight}', [DreamfightController::class, 'destroy'])->name('destroy');
 });
-
-Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/pound', [PoundAdminController::class, 'index'])->name('pound.index');
-    Route::post('/pound', [PoundAdminController::class, 'store'])->name('pound.store');
-    Route::patch('/pound/{fighter}', [PoundAdminController::class, 'update'])->name('pound.update');
-    Route::delete('/pound/{fighter}', [PoundAdminController::class, 'destroy'])->name('pound.destroy');
-
-    // Save All
-    Route::patch('/pound/update-all', [PoundAdminController::class, 'updateAll'])->name('pound.updateAll');
-});
-
-Route::patch('/admin/pound/bulk-update', [PoundAdminController::class, 'bulkUpdate'])->name('admin.pound.bulkUpdate');
 
 require __DIR__.'/auth.php';

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use willvincent\Feeds\Facades\FeedsFacade as FeedReader;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Http;
 
 class NewsController extends Controller
 {
@@ -25,7 +24,8 @@ class NewsController extends Controller
                 try {
                     $feed = FeedReader::make($url);
                     foreach ($feed->get_items(0, 5) as $item) {
-                        $item->image = $this->getImageForTitle($item->get_title());
+                        // Just give a default placeholder since we removed Bing lookup
+                        $item->image = 'https://via.placeholder.com/800x450?text=No+Image';
                         $items->push($item);
                     }
                 } catch (\Exception $e) {
@@ -38,27 +38,5 @@ class NewsController extends Controller
         });
 
         return view('news', compact('newsItems'));
-    }
-
-    private function getImageForTitle($title)
-    {
-        $key = env('BING_IMAGE_SEARCH_KEY');
-        $endpoint = env('BING_IMAGE_SEARCH_ENDPOINT');
-
-        try {
-            $response = Http::withHeaders([
-                'Ocp-Apim-Subscription-Key' => $key
-            ])->get($endpoint, [
-                'q' => $title . ' UFC',
-                'count' => 1,
-                'safeSearch' => 'Moderate'
-            ]);
-
-            $data = $response->json();
-            return $data['value'][0]['contentUrl'] ?? 'https://via.placeholder.com/800x450?text=No+Image';
-        } catch (\Exception $e) {
-            \Log::warning("Bing Image Search error for title $title: " . $e->getMessage());
-            return 'https://via.placeholder.com/800x450?text=No+Image';
-        }
     }
 }

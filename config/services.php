@@ -13,6 +13,10 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+    'sportsdata' => [
+        'key' => env('SPORTSDATA_API_KEY'),
+    ],
+    
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),

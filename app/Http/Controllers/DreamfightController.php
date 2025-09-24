@@ -10,15 +10,15 @@ use Illuminate\Support\Facades\Cache;
 
 class DreamfightController extends Controller
 {
-    // Rāda visas dream fights un formu jaunas cīņas izveidei
     public function index(Request $request)
     {
-        // Kešo visu cīkstoņu sarakstu uz 6 stundām
-        $fighters = Cache::remember('fighters_list', 21600, function () {
-            $data = Http::get('https://api.sportsdata.io/v3/mma/scores/json/FightersBasic?key=d966c6cdce8143da883523ed754cd488')->json();
+        // Use cached fighters to avoid slow API
+        $fighters = Cache::remember('fighters_list', 3600, function () {
+            $apiKey = config('services.sportsdata.key');
+            $data = Http::timeout(5)->get("https://api.sportsdata.io/v3/mma/scores/json/FightersBasic?key={$apiKey}")->json();
 
             return collect($data)
-                ->filter(fn($fighter) => !isset($fighter['Status']) || $fighter['Status'] === 'Active')
+                ->filter(fn($f) => !isset($f['Status']) || $f['Status'] === 'Active')
                 ->map(fn($f) => [
                     'FirstName'   => $f['FirstName'] ?? '',
                     'LastName'    => $f['LastName'] ?? '',
@@ -32,20 +32,14 @@ class DreamfightController extends Controller
                 ->values();
         });
 
-        // Ja ir filtrs pēc username
-        $query = Dreamfight::query()->with('user');
-        if ($request->filled('username')) {
-            $query->whereHas('user', function($q) use ($request) {
-                $q->where('name', 'like', '%' . $request->username . '%');
-            });
-        }
-
-        $dreamfights = $query->latest()->get();
+        $dreamfights = Dreamfight::with('user')
+            ->when($request->filled('username'), fn($q) => $q->whereHas('user', fn($uq) => $uq->where('name', 'like', '%' . $request->username . '%')))
+            ->latest()
+            ->get();
 
         return view('dreamfights', compact('fighters', 'dreamfights'));
     }
 
-    // Saglabā jaunu cīņu
     public function store(Request $request)
     {
         $request->validate([
@@ -54,7 +48,7 @@ class DreamfightController extends Controller
         ]);
 
         Dreamfight::create([
-            'user_id'          => Auth::id(),
+            'user_id' => Auth::id(),
             'fighter_one_name' => $request->fighter_one_name,
             'fighter_two_name' => $request->fighter_two_name,
         ]);
@@ -62,41 +56,14 @@ class DreamfightController extends Controller
         return redirect()->route('dreamfights.index')->with('success', 'Dream fight saved!');
     }
 
-    // Rediģē cīņu
     public function edit(Dreamfight $dreamfight)
     {
-        if (!Auth::user()->is_admin && $dreamfight->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
-        }
-
-        $fighters = Cache::remember('fighters_list', 21600, function () {
-            $data = Http::get('https://api.sportsdata.io/v3/mma/scores/json/FightersBasic?key=d966c6cdce8143da883523ed754cd488')->json();
-
-            return collect($data)
-                ->filter(fn($fighter) => !isset($fighter['Status']) || $fighter['Status'] === 'Active')
-                ->map(fn($f) => [
-                    'FirstName'   => $f['FirstName'] ?? '',
-                    'LastName'    => $f['LastName'] ?? '',
-                    'Nickname'    => $f['Nickname'] ?? '',
-                    'WeightClass' => $f['WeightClass'] ?? '',
-                    'Wins'        => $f['Wins'] ?? 0,
-                    'Losses'      => $f['Losses'] ?? 0,
-                    'Draws'       => $f['Draws'] ?? 0,
-                    'NoContests'  => $f['NoContests'] ?? 0,
-                ])
-                ->values();
-        });
-
+        $fighters = Cache::get('fighters_list', collect());
         return view('dreamfights.edit', compact('dreamfight', 'fighters'));
     }
 
-    // Atjaunina cīņu
     public function update(Request $request, Dreamfight $dreamfight)
     {
-        if (!Auth::user()->is_admin && $dreamfight->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
-        }
-
         $request->validate([
             'fighter_one_name' => 'required|string',
             'fighter_two_name' => 'required|string|different:fighter_one_name',
@@ -110,13 +77,8 @@ class DreamfightController extends Controller
         return redirect()->route('dreamfights.index')->with('success', 'Dream fight updated!');
     }
 
-    // Dzēš cīņu
     public function destroy(Dreamfight $dreamfight)
     {
-        if (!Auth::user()->is_admin && $dreamfight->user_id !== Auth::id()) {
-            abort(403, 'Unauthorized action.');
-        }
-
         $dreamfight->delete();
         return redirect()->route('dreamfights.index')->with('success', 'Dream fight deleted!');
     }

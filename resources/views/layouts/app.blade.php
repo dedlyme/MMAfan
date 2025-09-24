@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'UFC MMA Dashboard')</title>
-    @vite('resources/css/app.css')
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-900 text-white min-h-screen flex flex-col">
 
@@ -20,11 +20,10 @@
     <footer class="bg-gray-800 text-gray-400 py-6 mt-auto">
         <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
             <p>&copy; {{ date('Y') }} UFC MMA. All rights reserved.</p>
-           
         </div>
     </footer>
 
-    @vite('resources/js/app.js')
+    <!-- Blade scripts -->
     @stack('scripts')
 </body>
 </html>

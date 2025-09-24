@@ -1,3 +1,27 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Reusable button class */
+.btn {
+  @apply px-5 py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+}
+
+/* Primary button */
+.btn-primary {
+  @apply bg-primary text-white hover:bg-red-600;
+}
+
+/* Secondary button (gray) */
+.btn-secondary {
+  @apply bg-gray-700 text-white hover:bg-gray-600;
+}
+
+/* Dark mode overrides */
+.dark .btn-primary {
+  @apply bg-red-500 text-white hover:bg-red-400;
+}
+
+.dark .btn-secondary {
+  @apply bg-gray-800 text-white hover:bg-gray-700;
+}

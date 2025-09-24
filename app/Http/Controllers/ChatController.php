@@ -3,25 +3,27 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Message;
+use App\Events\MessageSent;
 
 class ChatController extends Controller
 {
     public function fetch()
     {
-        $messages = Message::with('user')->get();
+        $messages = Message::with('user')->latest()->take(200)->get()->reverse()->values();
         return view('dashboard', compact('messages'));
     }
 
     public function send(Request $request)
     {
-        $request->validate(['message' => 'required']);
+        $request->validate(['message' => 'required|string|max:1000']);
 
-        Message::create([
+        $message = Message::create([
             'user_id' => auth()->id(),
             'message' => $request->message,
         ]);
 
-        // Pēc ziņas saglabāšanas refresh lapu
-        return redirect()->back();
+        event(new MessageSent($message));
+
+        return response()->json($message->load('user'));
     }
 }
