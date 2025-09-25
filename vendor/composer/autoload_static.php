@@ -630,6 +630,10 @@ class ComposerStaticInitc514d8f7b9fc5970bdd94287905ef584
     );
 
     public static $classMap = array (
+        'App\\Console\\Commands\\ImportFighters' => __DIR__ . '/../..' . '/app/Console/Commands/ImportFighters.php',
+        'App\\Console\\Commands\\SyncFighters' => __DIR__ . '/../..' . '/app/Console/Commands/SyncFighters.php',
+        'App\\Events\\FightListUpdated' => __DIR__ . '/../..' . '/app/Events/FightListUpdated.php',
+        'App\\Events\\FightUpdated' => __DIR__ . '/../..' . '/app/Events/FightUpdated.php',
         'App\\Events\\MessageSent' => __DIR__ . '/../..' . '/app/Events/MessageSent.php',
         'App\\Http\\Controllers\\Admin\\AdminRankingController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/AdminRankingController.php',
         'App\\Http\\Controllers\\Admin\\DivisionController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/DivisionController.php',
@@ -649,10 +653,12 @@ class ComposerStaticInitc514d8f7b9fc5970bdd94287905ef584
         'App\\Http\\Controllers\\NewsController' => __DIR__ . '/../..' . '/app/Http/Controllers/NewsController.php',
         'App\\Http\\Controllers\\PoundController' => __DIR__ . '/../..' . '/app/Http/Controllers/PoundController.php',
         'App\\Http\\Controllers\\ProfileController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProfileController.php',
+        'App\\Http\\Controllers\\RankingController' => __DIR__ . '/../..' . '/app/Http/Controllers/RankingController.php',
         'App\\Http\\Requests\\Auth\\LoginRequest' => __DIR__ . '/../..' . '/app/Http/Requests/Auth/LoginRequest.php',
         'App\\Http\\Requests\\ProfileUpdateRequest' => __DIR__ . '/../..' . '/app/Http/Requests/ProfileUpdateRequest.php',
         'App\\Models\\Division' => __DIR__ . '/../..' . '/app/Models/Division.php',
         'App\\Models\\Dreamfight' => __DIR__ . '/../..' . '/app/Models/Dreamfight.php',
+        'App\\Models\\Fighter' => __DIR__ . '/../..' . '/app/Models/Fighter.php',
         'App\\Models\\Message' => __DIR__ . '/../..' . '/app/Models/Message.php',
         'App\\Models\\PoundFighter' => __DIR__ . '/../..' . '/app/Models/PoundFighter.php',
         'App\\Models\\Ranking' => __DIR__ . '/../..' . '/app/Models/Ranking.php',

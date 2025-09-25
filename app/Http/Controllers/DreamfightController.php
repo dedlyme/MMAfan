@@ -3,83 +3,124 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Dreamfight;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
+use App\Models\Dreamfight;
+use App\Models\Fighter;
 
 class DreamfightController extends Controller
 {
-    public function index(Request $request)
+    public function index()
     {
-        // Use cached fighters to avoid slow API
-        $fighters = Cache::remember('fighters_list', 3600, function () {
-            $apiKey = config('services.sportsdata.key');
-            $data = Http::timeout(5)->get("https://api.sportsdata.io/v3/mma/scores/json/FightersBasic?key={$apiKey}")->json();
+        // ✅ Load fighters (sorted by first + last name)
+        $fighters = Fighter::orderBy('first_name')->orderBy('last_name')->get();
 
-            return collect($data)
-                ->filter(fn($f) => !isset($f['Status']) || $f['Status'] === 'Active')
-                ->map(fn($f) => [
-                    'FirstName'   => $f['FirstName'] ?? '',
-                    'LastName'    => $f['LastName'] ?? '',
-                    'Nickname'    => $f['Nickname'] ?? '',
-                    'WeightClass' => $f['WeightClass'] ?? '',
-                    'Wins'        => $f['Wins'] ?? 0,
-                    'Losses'      => $f['Losses'] ?? 0,
-                    'Draws'       => $f['Draws'] ?? 0,
-                    'NoContests'  => $f['NoContests'] ?? 0,
-                ])
-                ->values();
-        });
-
-        $dreamfights = Dreamfight::with('user')
-            ->when($request->filled('username'), fn($q) => $q->whereHas('user', fn($uq) => $uq->where('name', 'like', '%' . $request->username . '%')))
-            ->latest()
+        // ✅ Load fights with players & order newest first
+        $dreamfights = Dreamfight::with(['playerOne', 'playerTwo'])
+            ->orderByDesc('created_at')
             ->get();
 
         return view('dreamfights', compact('fighters', 'dreamfights'));
     }
 
-    public function store(Request $request)
+    public function create(Request $request)
     {
         $request->validate([
-            'fighter_one_name' => 'required|string',
-            'fighter_two_name' => 'required|string|different:fighter_one_name',
+            'fighter_id' => 'required|exists:fighters,id',
         ]);
 
         Dreamfight::create([
-            'user_id' => Auth::id(),
-            'fighter_one_name' => $request->fighter_one_name,
-            'fighter_two_name' => $request->fighter_two_name,
+            'player_one_id' => Auth::id(),
+            'player_one_fighter_id' => $request->fighter_id,
+            'current_round' => 1,
+            'player_one_score' => 0,
+            'player_two_score' => 0,
+            'status' => 'waiting',
         ]);
 
-        return redirect()->route('dreamfights.index')->with('success', 'Dream fight saved!');
+        return redirect()->route('dreamfights.index')
+            ->with('success', 'Challenge created! Waiting for another player...');
     }
 
-    public function edit(Dreamfight $dreamfight)
-    {
-        $fighters = Cache::get('fighters_list', collect());
-        return view('dreamfights.edit', compact('dreamfight', 'fighters'));
-    }
-
-    public function update(Request $request, Dreamfight $dreamfight)
+    public function join(Request $request, Dreamfight $dreamfight)
     {
         $request->validate([
-            'fighter_one_name' => 'required|string',
-            'fighter_two_name' => 'required|string|different:fighter_one_name',
+            'fighter_id' => 'required|exists:fighters,id',
         ]);
+
+        if ($dreamfight->player_two_id) {
+            return redirect()->route('dreamfights.index')
+                ->with('error', 'Fight already has two players.');
+        }
 
         $dreamfight->update([
-            'fighter_one_name' => $request->fighter_one_name,
-            'fighter_two_name' => $request->fighter_two_name,
+            'player_two_id' => Auth::id(),
+            'player_two_fighter_id' => $request->fighter_id,
+            'status' => 'in_progress',
         ]);
 
-        return redirect()->route('dreamfights.index')->with('success', 'Dream fight updated!');
+        return redirect()->route('dreamfights.index')
+            ->with('success', 'You joined the fight!');
     }
 
-    public function destroy(Dreamfight $dreamfight)
+    public function choose(Request $request, Dreamfight $dreamfight)
     {
-        $dreamfight->delete();
-        return redirect()->route('dreamfights.index')->with('success', 'Dream fight deleted!');
+        $request->validate([
+            'choice' => 'required|in:wrestling,kickbox,jiu-jitsu',
+        ]);
+
+        // Save player choice
+        if ($dreamfight->player_one_id === Auth::id()) {
+            $dreamfight->player_one_choice = $request->choice;
+        } elseif ($dreamfight->player_two_id === Auth::id()) {
+            $dreamfight->player_two_choice = $request->choice;
+        }
+
+        // If both players have chosen, decide winner for this round
+        if ($dreamfight->player_one_choice && $dreamfight->player_two_choice) {
+            $winner = $this->determineWinner($dreamfight->player_one_choice, $dreamfight->player_two_choice);
+
+            if ($winner === 'p1') {
+                $dreamfight->player_one_score += 1;
+            } elseif ($winner === 'p2') {
+                $dreamfight->player_two_score += 1;
+            }
+
+            // Reset choices for next round
+            $dreamfight->player_one_choice = null;
+            $dreamfight->player_two_choice = null;
+
+            // If 3 rounds done → finish fight
+            if ($dreamfight->current_round >= 3) {
+                $dreamfight->status = 'finished';
+                if ($dreamfight->player_one_score > $dreamfight->player_two_score) {
+                    $dreamfight->winner = $dreamfight->playerOne->name ?? 'Player 1';
+                } elseif ($dreamfight->player_two_score > $dreamfight->player_one_score) {
+                    $dreamfight->winner = $dreamfight->playerTwo->name ?? 'Player 2';
+                } else {
+                    $dreamfight->winner = 'Draw';
+                }
+            } else {
+                $dreamfight->current_round += 1;
+            }
+        }
+
+        $dreamfight->save();
+
+        return redirect()->route('dreamfights.index');
+    }
+
+    private function determineWinner($p1, $p2)
+    {
+        $beats = [
+            'wrestling' => 'kickbox',
+            'kickbox' => 'jiu-jitsu',
+            'jiu-jitsu' => 'wrestling',
+        ];
+
+        if ($p1 === $p2) {
+            return null; // draw
+        }
+
+        return $beats[$p1] === $p2 ? 'p1' : 'p2';
     }
 }

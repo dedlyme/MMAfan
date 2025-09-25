@@ -1,105 +1,111 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\ChatController;
+use Illuminate\Http\Request;
 use App\Models\Division;
 use App\Models\Ranking;
-use Illuminate\Http\Request;
+
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\RankingController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\PoundController;
 use App\Http\Controllers\Admin\PoundAdminController;
-use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\Admin\AdminRankingController;
 use App\Http\Controllers\DreamfightController;
 
-/* ------------------------------
-    Admin Pound for Pound CRUD
---------------------------------*/
-Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/pound', [PoundAdminController::class, 'index'])->name('pound.index');
-    Route::post('/pound', [PoundAdminController::class, 'store'])->name('pound.store');
-    Route::patch('/pound/{fighter}', [PoundAdminController::class, 'update'])->name('pound.update');
-    Route::delete('/pound/{fighter}', [PoundAdminController::class, 'destroy'])->name('pound.destroy');
-
-    // Save All
-    Route::patch('/pound/update-all', [PoundAdminController::class, 'updateAll'])->name('pound.updateAll');
-});
-
-/* ------------------------------
-    Guest Welcome Page
---------------------------------*/
+/*
+|--------------------------------------------------------------------------
+| Guest / Public
+|--------------------------------------------------------------------------
+*/
 Route::get('/', function () {
     return view('welcome');
 });
 
-/* ------------------------------
-    Live Chat (Dashboard)
---------------------------------*/
+/*
+|--------------------------------------------------------------------------
+| Dashboard (Chat)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [ChatController::class, 'fetch'])->name('dashboard');
     Route::post('/messages', [ChatController::class, 'send'])->name('messages.send');
 });
 
-/* ------------------------------
-    Profile CRUD
---------------------------------*/
+/*
+|--------------------------------------------------------------------------
+| Profile
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-/* ------------------------------
-    Ranking routes
---------------------------------*/
+/*
+|--------------------------------------------------------------------------
+| Rankings (Public View + CRUD)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
+    // Rankings list
     Route::get('/ranking', [RankingController::class, 'index'])->name('ranking');
-    Route::post('/ranking', [RankingController::class, 'store'])->name('ranking.store');
-    Route::delete('/ranking/{ranking}', [RankingController::class, 'destroy'])->name('ranking.destroy');
-    Route::patch('/ranking/{ranking}', [RankingController::class, 'update'])->name('ranking.update');
-});
+    // Single division page
+    Route::get('/ranking/{division}', [RankingController::class, 'show'])->name('ranking.show');
 
-Route::middleware('auth')->group(function () {
+    // Admin fighter management
+    Route::post('/ranking', [RankingController::class, 'store'])->name('ranking.store');
+    Route::patch('/ranking/{ranking}', [RankingController::class, 'update'])->name('ranking.update');
+    Route::delete('/ranking/{ranking}', [RankingController::class, 'destroy'])->name('ranking.destroy');
     Route::patch('/admin/divisions/{division}/rankings/order', [RankingController::class, 'updateOrder'])
         ->name('admin.rankings.updateOrder');
 });
 
-/* ------------------------------
-    Admin Divisions + Fighters CRUD
---------------------------------*/
+/*
+|--------------------------------------------------------------------------
+| Admin: Pound for Pound CRUD
+|--------------------------------------------------------------------------
+*/
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/pound', [PoundAdminController::class, 'index'])->name('pound.index');
+    Route::post('/pound', [PoundAdminController::class, 'store'])->name('pound.store');
+    Route::patch('/pound/{fighter}', [PoundAdminController::class, 'update'])->name('pound.update');
+    Route::delete('/pound/{fighter}', [PoundAdminController::class, 'destroy'])->name('pound.destroy');
+    Route::patch('/pound/update-all', [PoundAdminController::class, 'updateAll'])->name('pound.updateAll');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin: Divisions & Fighters CRUD
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
     Route::get('/admin/divisions', function () {
-        $user = auth()->user();
-        if (!$user || !$user->is_admin) abort(403, 'Unauthorized');
-
+        abort_unless(auth()->user()?->is_admin, 403);
         $divisions = Division::with('rankings')->get();
         return view('admin.divisions.index', compact('divisions'));
     })->name('admin.divisions.index');
 
     Route::post('/admin/divisions', function (Request $request) {
-        $user = auth()->user();
-        if (!$user || !$user->is_admin) abort(403, 'Unauthorized');
+        abort_unless(auth()->user()?->is_admin, 403);
         $request->validate(['name' => 'required|string|max:255']);
         Division::create(['name' => $request->name]);
         return redirect()->route('admin.divisions.index');
     })->name('admin.divisions.store');
 
-    Route::delete('/admin/rankings/{ranking}', [AdminRankingController::class, 'destroy'])->name('admin.fighters.destroy');
-
     Route::delete('/admin/divisions/{division}', function (Division $division) {
-        $user = auth()->user();
-        if (!$user || !$user->is_admin) abort(403, 'Unauthorized');
+        abort_unless(auth()->user()?->is_admin, 403);
         $division->delete();
         return redirect()->route('admin.divisions.index');
     })->name('admin.divisions.destroy');
 
     Route::post('/admin/divisions/{division}/rankings', [AdminRankingController::class, 'store'])->name('admin.rankings.store');
+    Route::delete('/admin/rankings/{ranking}', [AdminRankingController::class, 'destroy'])->name('admin.fighters.destroy');
 
     Route::patch('/admin/divisions/{division}', function (Request $request, Division $division) {
-        $user = auth()->user();
-        if (!$user || !$user->is_admin) abort(403, 'Unauthorized');
+        abort_unless(auth()->user()?->is_admin, 403);
         $request->validate(['name' => 'required|string|max:255']);
         $division->update(['name' => $request->name]);
 
@@ -127,29 +133,35 @@ Route::middleware('auth')->group(function () {
     })->name('admin.divisions.update');
 });
 
-/* ------------------------------
-    News Route
---------------------------------*/
+/*
+|--------------------------------------------------------------------------
+| News
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
     Route::get('/news', [NewsController::class, 'index'])->name('news');
 });
 
-/* ------------------------------
-    Pound for Pound Route
---------------------------------*/
+/*
+|--------------------------------------------------------------------------
+| Pound for Pound (User View)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->group(function () {
     Route::get('/pound', [PoundController::class, 'index'])->name('pound');
 });
 
-/* ------------------------------
-    Dreamfights Routes (Fixed)
---------------------------------*/
+/*
+|--------------------------------------------------------------------------
+| Dreamfights (Online Mini-Game)
+|--------------------------------------------------------------------------
+*/
 Route::middleware('auth')->prefix('dreamfights')->name('dreamfights.')->group(function () {
     Route::get('/', [DreamfightController::class, 'index'])->name('index');
-    Route::post('/', [DreamfightController::class, 'store'])->name('store');
-    Route::get('/{dreamfight}/edit', [DreamfightController::class, 'edit'])->name('edit');
-    Route::patch('/{dreamfight}', [DreamfightController::class, 'update'])->name('update');
-    Route::delete('/{dreamfight}', [DreamfightController::class, 'destroy'])->name('destroy');
+    Route::post('/', [DreamfightController::class, 'create'])->name('create');
+    Route::post('/{dreamfight}/join', [DreamfightController::class, 'join'])->name('join');
+    Route::post('/{dreamfight}/choose', [DreamfightController::class, 'choose'])->name('choose');
 });
+
 
 require __DIR__.'/auth.php';

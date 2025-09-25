@@ -11,12 +11,20 @@ return new class extends Migration
     {
         Schema::create('dreamfights', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->string('fighter_one_name');
-            $table->string('fighter_two_name');
+            $table->foreignId('player_one_id')->constrained('users');
+            $table->foreignId('player_two_id')->nullable()->constrained('users');
+            $table->string('player_one_fighter_id');
+            $table->string('player_two_fighter_id')->nullable();
+            $table->enum('player_one_choice', ['wrestling','kickbox','jiu-jitsu'])->nullable();
+            $table->enum('player_two_choice', ['wrestling','kickbox','jiu-jitsu'])->nullable();
+            $table->integer('player_one_score')->default(0);
+            $table->integer('player_two_score')->default(0);
+            $table->string('winner')->nullable();
+            $table->enum('status', ['waiting','in_progress','finished'])->default('waiting');
             $table->timestamps();
         });
     }
+    
 
     public function down(): void
     {

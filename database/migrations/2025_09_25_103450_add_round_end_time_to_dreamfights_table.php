@@ -9,15 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('dreamfights', function (Blueprint $table) {
-            $table->string('fighter_one_name');
-            $table->string('fighter_two_name');
+            $table->timestamp('round_end_time')->nullable()->after('current_round');
         });
     }
 
     public function down(): void
     {
         Schema::table('dreamfights', function (Blueprint $table) {
-            $table->dropColumn(['fighter_one_name', 'fighter_two_name']);
+            $table->dropColumn('round_end_time');
         });
     }
 };

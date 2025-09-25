@@ -10,13 +10,20 @@ class Dreamfight extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'fighter_one_name',
-        'fighter_two_name',
+        'player_one_id',
+        'player_two_id',
+        'player_one_fighter_id',
+        'player_two_fighter_id',
+        'player_one_choice',
+        'player_two_choice',
+        'winner',
+        'player_one_score',
+        'player_two_score',
+        'status'
     ];
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    public function playerOne() { return $this->belongsTo(User::class, 'player_one_id'); }
+    public function playerTwo() { return $this->belongsTo(User::class, 'player_two_id'); }
+    public function fighterOne() { return $this->belongsTo(Fighter::class, 'player_one_fighter_id'); }
+    public function fighterTwo() { return $this->belongsTo(Fighter::class, 'player_two_fighter_id'); }
 }

@@ -6,6 +6,10 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'App\\Console\\Commands\\ImportFighters' => $baseDir . '/app/Console/Commands/ImportFighters.php',
+    'App\\Console\\Commands\\SyncFighters' => $baseDir . '/app/Console/Commands/SyncFighters.php',
+    'App\\Events\\FightListUpdated' => $baseDir . '/app/Events/FightListUpdated.php',
+    'App\\Events\\FightUpdated' => $baseDir . '/app/Events/FightUpdated.php',
     'App\\Events\\MessageSent' => $baseDir . '/app/Events/MessageSent.php',
     'App\\Http\\Controllers\\Admin\\AdminRankingController' => $baseDir . '/app/Http/Controllers/Admin/AdminRankingController.php',
     'App\\Http\\Controllers\\Admin\\DivisionController' => $baseDir . '/app/Http/Controllers/Admin/DivisionController.php',
@@ -25,10 +29,12 @@ return array(
     'App\\Http\\Controllers\\NewsController' => $baseDir . '/app/Http/Controllers/NewsController.php',
     'App\\Http\\Controllers\\PoundController' => $baseDir . '/app/Http/Controllers/PoundController.php',
     'App\\Http\\Controllers\\ProfileController' => $baseDir . '/app/Http/Controllers/ProfileController.php',
+    'App\\Http\\Controllers\\RankingController' => $baseDir . '/app/Http/Controllers/RankingController.php',
     'App\\Http\\Requests\\Auth\\LoginRequest' => $baseDir . '/app/Http/Requests/Auth/LoginRequest.php',
     'App\\Http\\Requests\\ProfileUpdateRequest' => $baseDir . '/app/Http/Requests/ProfileUpdateRequest.php',
     'App\\Models\\Division' => $baseDir . '/app/Models/Division.php',
     'App\\Models\\Dreamfight' => $baseDir . '/app/Models/Dreamfight.php',
+    'App\\Models\\Fighter' => $baseDir . '/app/Models/Fighter.php',
     'App\\Models\\Message' => $baseDir . '/app/Models/Message.php',
     'App\\Models\\PoundFighter' => $baseDir . '/app/Models/PoundFighter.php',
     'App\\Models\\Ranking' => $baseDir . '/app/Models/Ranking.php',

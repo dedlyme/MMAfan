@@ -9,16 +9,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('dreamfights', function (Blueprint $table) {
-            $table->renameColumn('fighter_one', 'fighter_one_name');
-            $table->renameColumn('fighter_two', 'fighter_two_name');
+            $table->unsignedTinyInteger('current_round')->default(1);
         });
     }
 
     public function down(): void
     {
         Schema::table('dreamfights', function (Blueprint $table) {
-            $table->renameColumn('fighter_one_name', 'fighter_one');
-            $table->renameColumn('fighter_two_name', 'fighter_two');
+            $table->dropColumn('current_round');
         });
     }
 };

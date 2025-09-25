@@ -1,186 +1,124 @@
 @extends('layouts.app')
 
-@section('title', 'Dream Fights - UFC MMA')
+@section('title', 'Dream Fights')
 
 @section('content')
-<div class="relative z-10 max-w-6xl mx-auto py-12 px-4">
-
-    <h1 class="text-5xl font-extrabold text-red-500 mb-10 text-center drop-shadow-lg">
+<div class="max-w-5xl mx-auto py-12 px-4">
+    <h1 class="text-5xl font-extrabold text-red-500 text-center mb-12 drop-shadow-lg">
         Dream Fights
     </h1>
 
-    {{-- Success Message --}}
     @if(session('success'))
-        <div id="success-msg" class="bg-green-600 text-white p-4 mb-6 rounded-xl shadow-lg transition-opacity duration-500">
-            {{ session('success') }}
-        </div>
+        <div class="bg-green-600 text-white p-4 mb-6 rounded-xl shadow-md">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="bg-red-600 text-white p-4 mb-6 rounded-xl shadow-md">{{ session('error') }}</div>
     @endif
 
-    <!-- Search Form -->
-    <div class="mb-8">
-        <form method="GET" action="{{ route('dreamfights.index') }}" class="flex flex-col md:flex-row gap-3">
-            <input type="text" name="username" value="{{ request('username') }}" placeholder="Search by username..."
-                   class="flex-1 p-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-500 transition">
-            <div class="flex gap-2">
-                <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-5 py-3 rounded-xl shadow-md transition">
-                    Search
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+
+        <!-- CREATE CHALLENGE -->
+        <div class="bg-gray-900/80 rounded-3xl p-6 shadow-2xl">
+            <h2 class="text-2xl font-bold text-red-500 mb-4">Create a Challenge</h2>
+            <form method="POST" action="{{ route('dreamfights.create') }}">
+                @csrf
+                <label class="block text-white font-medium mb-2">Choose Your Fighter:</label>
+                <select name="fighter_id" class="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-700 mb-4">
+                    @foreach($fighters as $fighter)
+                        <option value="{{ $fighter->id }}">
+                            {{ $fighter->first_name }} {{ $fighter->last_name }}
+                            @if($fighter->nickname) ({{ $fighter->nickname }}) @endif
+                        </option>
+                    @endforeach
+                </select>
+                <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-xl font-semibold">
+                    Create Challenge
                 </button>
-                <a href="{{ route('dreamfights.index') }}" class="bg-gray-700 hover:bg-gray-600 text-white px-5 py-3 rounded-xl shadow-md transition">
-                    Clear
-                </a>
-            </div>
-        </form>
-    </div>
+            </form>
+        </div>
 
-    <!-- Create New Dream Fight -->
-    <div class="bg-gray-900/70 backdrop-blur-md rounded-3xl p-8 mb-10 shadow-2xl">
-        <h2 class="text-3xl font-bold text-red-500 mb-6">Create New Dream Fight</h2>
-        <form method="POST" action="{{ route('dreamfights.store') }}" class="space-y-6">
-            @csrf
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                @foreach(['one','two'] as $i)
-                    <div>
-                        <label class="block text-white font-semibold mb-2">Fighter {{ ucfirst($i) }}</label>
-                        <div class="flex gap-2 mb-2">
-                            <input type="text" id="search-fighter-{{ $i }}" placeholder="Search fighter..."
-                                   class="flex-1 p-2 rounded-xl bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-500 transition">
-                            <button type="button" id="clear-fighter-{{ $i }}" class="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-white transition">
-                                Clear
-                            </button>
+        <!-- FIGHTS LIST -->
+        <div class="bg-gray-900/80 rounded-3xl p-6 shadow-2xl">
+            <h2 class="text-2xl font-bold text-red-500 mb-4">Fights</h2>
+
+            @forelse($dreamfights as $fight)
+                <div class="bg-gray-800/50 rounded-xl p-4 mb-4 shadow-md">
+                    <div class="flex justify-between items-center flex-wrap gap-2 mb-3">
+                        <div class="text-white font-semibold">
+                            {{ $fight->playerOne->name }} ({{ $fight->player_one_id === Auth::id() ? 'You' : 'P1' }})
+                            <span class="text-gray-400">vs</span>
+                            {{ $fight->playerTwo?->name ?? 'Waiting...' }}
+                            @if($fight->player_two_id === Auth::id()) (You) @endif
                         </div>
-                        <select name="fighter_{{ $i }}_name" id="fighter-{{ $i }}" required size="5"
-                                class="w-full p-3 rounded-xl bg-gray-800 text-white border border-gray-700 focus:ring-2 focus:ring-red-500 transition">
-                            @foreach($fighters as $fighter)
-                                <option value="{{ $fighter['FirstName'] }} {{ $fighter['LastName'] }}"
-                                        data-weight="{{ $fighter['WeightClass'] }}">
-                                    {{ $fighter['FirstName'] }} {{ $fighter['LastName'] }}
-                                    @if(!empty($fighter['Nickname'])) ({{ $fighter['Nickname'] }}) @endif
-                                </option>
-                            @endforeach
-                        </select>
+                        <div class="text-gray-300 text-sm">
+                            Round: {{ $fight->current_round ?? 1 }}/3
+                        </div>
                     </div>
-                @endforeach
-            </div>
 
-            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg transition">
-                Save Dream Fight
-            </button>
-        </form>
+                    <div class="text-gray-300 text-sm mb-2">
+                        Score: {{ $fight->player_one_score }} - {{ $fight->player_two_score }}
+                    </div>
+
+                    {{-- JOIN FORM --}}
+                    @if($fight->status === 'waiting' && !$fight->player_two_id && Auth::id() !== $fight->player_one_id)
+                        <form method="POST" action="{{ route('dreamfights.join', $fight) }}" class="flex gap-2">
+                            @csrf
+                            <select name="fighter_id" class="bg-gray-700 text-white rounded-xl p-2">
+                                @foreach($fighters as $fighter)
+                                    <option value="{{ $fighter->id }}">
+                                        {{ $fighter->first_name }} {{ $fighter->last_name }}
+                                        @if($fighter->nickname) ({{ $fighter->nickname }}) @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                            <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-xl font-semibold">
+                                Join
+                            </button>
+                        </form>
+                    @endif
+
+                    {{-- CHOOSE MOVE --}}
+                    @php $canChoose = ($fight->status === 'in_progress') && (
+                        ($fight->player_one_id === Auth::id() && !$fight->player_one_choice) ||
+                        ($fight->player_two_id === Auth::id() && !$fight->player_two_choice)
+                    ); @endphp
+
+                    @if($canChoose)
+                        <form method="POST" action="{{ route('dreamfights.choose', $fight) }}" class="flex gap-2 mt-2">
+                            @csrf
+                            <select name="choice" class="bg-gray-700 text-white rounded-xl p-2">
+                                <option value="wrestling">Wrestling</option>
+                                <option value="kickbox">Kickbox</option>
+                                <option value="jiu-jitsu">Jiu-Jitsu</option>
+                            </select>
+                            <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-xl font-semibold">
+                                Choose
+                            </button>
+                        </form>
+                    @endif
+
+                    {{-- ROUND TIMER --}}
+                    @if($fight->status === 'in_progress' && $fight->round_end_time)
+                        <div class="text-yellow-400 font-semibold mt-2">
+                            Round ends at: {{ \Carbon\Carbon::parse($fight->round_end_time)->format('H:i:s') }}
+                        </div>
+                    @endif
+
+                    {{-- WINNER --}}
+                    @if($fight->status === 'finished')
+                        <div class="text-green-400 font-bold mt-2">
+                            Winner: {{ $fight->winner }}
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <p class="text-gray-400 text-center">No fights yet.</p>
+            @endforelse
+
+            <p class="text-gray-500 text-center mt-4 text-sm">
+                🔄 Refresh the page every ~15s to see updates.
+            </p>
+        </div>
     </div>
-
-    <!-- Dream Fights Table -->
-    <div class="overflow-x-auto bg-gray-900/60 backdrop-blur-md rounded-3xl shadow-2xl">
-        <table class="min-w-full divide-y divide-gray-700 text-white">
-            <thead class="bg-gray-800/80">
-                <tr>
-                    <th class="px-6 py-3 text-left font-medium">Fighter One</th>
-                    <th class="px-6 py-3 text-left font-medium">Fighter Two</th>
-                    <th class="px-6 py-3 text-left font-medium">Created By</th>
-                    <th class="px-6 py-3 text-left font-medium">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-700">
-                @forelse($dreamfights as $fight)
-                    <tr class="hover:bg-gray-800/50 transition">
-                        <td class="px-6 py-3">{{ $fight->fighter_one_name }}</td>
-                        <td class="px-6 py-3">{{ $fight->fighter_two_name }}</td>
-                        <td class="px-6 py-3">{{ $fight->user->name }}</td>
-                        <td class="px-6 py-3 flex flex-wrap gap-2">
-                            @if(auth()->user()->is_admin || $fight->user_id === auth()->id())
-                                <a href="{{ route('dreamfights.edit', $fight) }}"
-                                   class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-xl transition shadow-md">
-                                    Edit
-                                </a>
-                                <form method="POST" action="{{ route('dreamfights.destroy', $fight) }}" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" onclick="return confirm('Delete fight?')"
-                                            class="bg-red-700 hover:bg-red-600 text-white px-3 py-2 rounded-xl transition shadow-md">
-                                        Delete
-                                    </button>
-                                </form>
-                            @else
-                                <span class="text-gray-400 italic">No actions</span>
-                            @endif
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" class="px-6 py-3 text-center text-gray-400">No dream fights found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
 </div>
 @endsection
-
-@push('scripts')
-<script>
-// Filter function for fighter selects
-function filterSelect(inputId, selectId) {
-    const input = document.getElementById(inputId);
-    const select = document.getElementById(selectId);
-
-    input.addEventListener('keyup', function() {
-        const filter = input.value.toLowerCase();
-        Array.from(select.options).forEach(option => {
-            option.style.display = option.text.toLowerCase().includes(filter) ? '' : 'none';
-        });
-        for (let i = 0; i < select.options.length; i++) {
-            if (select.options[i].style.display !== 'none') {
-                select.selectedIndex = i;
-                break;
-            }
-        }
-    });
-}
-
-// Fighter Two weight restriction
-function restrictFighterTwo() {
-    const fighterOne = document.getElementById('fighter-one');
-    const fighterTwo = document.getElementById('fighter-two');
-    const weightOrder = [
-        "Atomweight", "Strawweight", "Flyweight", "Bantamweight", "Featherweight",
-        "Lightweight", "Welterweight", "Middleweight", "Light Heavyweight", "Heavyweight",
-        "Women’s Flyweight", "Women’s Bantamweight", "Women’s Featherweight", "Women’s Lightweight"
-    ];
-
-    fighterOne.addEventListener('change', function() {
-        if (!fighterOne.selectedOptions[0]) return;
-        const selectedWeight = fighterOne.selectedOptions[0].dataset.weight;
-        const selectedIndex = weightOrder.findIndex(w => selectedWeight.includes(w));
-
-        Array.from(fighterTwo.options).forEach(option => {
-            const optionIndex = weightOrder.findIndex(w => option.dataset.weight.includes(w));
-            option.style.display = (optionIndex >= selectedIndex - 1 && optionIndex <= selectedIndex + 1) ? '' : 'none';
-        });
-
-        for (let i = 0; i < fighterTwo.options.length; i++) {
-            if (fighterTwo.options[i].style.display !== 'none') {
-                fighterTwo.selectedIndex = i;
-                break;
-            }
-        }
-    });
-}
-
-// Clear buttons
-document.getElementById('clear-fighter-one').addEventListener('click', () => document.getElementById('fighter-one').selectedIndex = -1);
-document.getElementById('clear-fighter-two').addEventListener('click', () => document.getElementById('fighter-two').selectedIndex = -1);
-
-filterSelect('search-fighter-one', 'fighter-one');
-filterSelect('search-fighter-two', 'fighter-two');
-restrictFighterTwo();
-
-// Fade out success message after 5 seconds
-const msg = document.getElementById('success-msg');
-if(msg){
-    setTimeout(() => {
-        msg.style.opacity = 0;
-        setTimeout(() => msg.remove(), 500); // remove after fade out
-    }, 5000);
-}
-</script>
-@endpush
