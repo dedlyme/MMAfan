@@ -10,7 +10,8 @@ export default {
         './resources/js/**/*.js',
     ],
 
-    darkMode: 'class', // enables dark mode via "dark" class
+    // 🌙 Dark mode toggled with "dark" class on <html> or <body>
+    darkMode: 'class',
 
     theme: {
         extend: {
@@ -18,15 +19,25 @@ export default {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },
             colors: {
-                primary: '#ef4444',      // main red for buttons/highlights
-                secondary: '#1f1f1f',    // dark background
-                lightBg: '#f9f9f9',      // light background
-                darkBg: '#1f1f1f',       // dark background
-                textLight: '#1f1f1f',    // text in light mode
-                textDark: '#f9f9f9',     // text in dark mode
+                primary: '#ef4444', // UFC Red (accents and buttons)
+                secondary: '#1f1f1f', // dark gray for subtle backgrounds
+                darkBg: '#0a0a0a',    // true black for dark mode
+                lightBg: '#ffffff',   // pure white for light mode
+                textLight: '#1f1f1f', // text in light mode
+                textDark: '#f9f9f9',  // text in dark mode
+            },
+            boxShadow: {
+                'xl-red': '0 10px 25px -3px rgba(239, 68, 68, 0.4)',
+                'xl-soft': '0 10px 25px -3px rgba(0, 0, 0, 0.1)',
+            },
+            transitionDuration: {
+                400: '400ms',
+                600: '600ms',
             },
         },
     },
 
-    plugins: [forms],
+    plugins: [
+        forms, // better default styles for form inputs
+    ],
 };

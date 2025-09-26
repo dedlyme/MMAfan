@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+<body class="bg-lightBg text-gray-900 dark:bg-darkBg dark:text-white min-h-screen flex flex-col transition-colors duration-500">
 
     <!-- Navbar -->
     @include('partials.navbar')
@@ -18,13 +18,12 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-gray-400 py-6 mt-auto">
+    <footer class="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 py-6 mt-auto transition-colors duration-500">
         <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
             <p>&copy; {{ date('Y') }} UFC MMA. All rights reserved.</p>
         </div>
     </footer>
 
-    <!-- Blade scripts -->
     @stack('scripts')
 </body>
 </html>

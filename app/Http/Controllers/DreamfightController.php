@@ -3,124 +3,139 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\Dreamfight;
 use App\Models\Fighter;
+use Illuminate\Support\Facades\Auth;
 
 class DreamfightController extends Controller
 {
+    // --- LIST OF FIGHTS ---
     public function index()
     {
-        // ✅ Load fighters (sorted by first + last name)
         $fighters = Fighter::orderBy('first_name')->orderBy('last_name')->get();
-
-        // ✅ Load fights with players & order newest first
-        $dreamfights = Dreamfight::with(['playerOne', 'playerTwo'])
-            ->orderByDesc('created_at')
-            ->get();
+        $dreamfights = Dreamfight::with(['playerOne', 'playerTwo'])->latest()->get();
 
         return view('dreamfights', compact('fighters', 'dreamfights'));
     }
 
+    // --- CREATE FIGHT ---
     public function create(Request $request)
     {
         $request->validate([
-            'fighter_id' => 'required|exists:fighters,id',
+            'fighter_id' => 'required|exists:fighters,id'
         ]);
 
         Dreamfight::create([
             'player_one_id' => Auth::id(),
             'player_one_fighter_id' => $request->fighter_id,
+            'status' => 'waiting',
             'current_round' => 1,
             'player_one_score' => 0,
             'player_two_score' => 0,
-            'status' => 'waiting',
         ]);
 
-        return redirect()->route('dreamfights.index')
-            ->with('success', 'Challenge created! Waiting for another player...');
+        return redirect()->route('dreamfights.index')->with('success', 'Fight created! Waiting for opponent.');
     }
 
-    public function join(Request $request, Dreamfight $dreamfight)
+    // --- JOIN FIGHT ---
+    public function join(Dreamfight $dreamfight, Request $request)
     {
-        $request->validate([
-            'fighter_id' => 'required|exists:fighters,id',
-        ]);
-
-        if ($dreamfight->player_two_id) {
-            return redirect()->route('dreamfights.index')
-                ->with('error', 'Fight already has two players.');
+        if ($dreamfight->status !== 'waiting' || $dreamfight->player_two_id) {
+            return back()->with('error', 'This fight is not available to join.');
         }
+
+        $request->validate([
+            'fighter_id' => 'required|exists:fighters,id'
+        ]);
 
         $dreamfight->update([
             'player_two_id' => Auth::id(),
             'player_two_fighter_id' => $request->fighter_id,
             'status' => 'in_progress',
+            'player_one_choice' => null,
+            'player_two_choice' => null,
         ]);
 
-        return redirect()->route('dreamfights.index')
-            ->with('success', 'You joined the fight!');
+        return redirect()->route('dreamfights.show', $dreamfight);
     }
 
-    public function choose(Request $request, Dreamfight $dreamfight)
+    // --- SHOW GAME PAGE ---
+    public function show(Dreamfight $dreamfight)
     {
+        // Only players can enter the fight page
+        abort_unless(in_array(Auth::id(), [$dreamfight->player_one_id, $dreamfight->player_two_id]), 403);
+
+        return view('dreamfight_game', compact('dreamfight'));
+    }
+
+    // --- PLAYER MAKES A CHOICE ---
+    public function choose(Dreamfight $dreamfight, Request $request)
+    {
+        abort_unless(in_array(Auth::id(), [$dreamfight->player_one_id, $dreamfight->player_two_id]), 403);
+
         $request->validate([
-            'choice' => 'required|in:wrestling,kickbox,jiu-jitsu',
+            'choice' => 'required|in:wrestling,kickbox,jiu-jitsu'
         ]);
 
-        // Save player choice
-        if ($dreamfight->player_one_id === Auth::id()) {
+        if ($dreamfight->status !== 'in_progress') return back();
+
+        if (Auth::id() === $dreamfight->player_one_id && !$dreamfight->player_one_choice) {
             $dreamfight->player_one_choice = $request->choice;
-        } elseif ($dreamfight->player_two_id === Auth::id()) {
-            $dreamfight->player_two_choice = $request->choice;
         }
 
-        // If both players have chosen, decide winner for this round
-        if ($dreamfight->player_one_choice && $dreamfight->player_two_choice) {
-            $winner = $this->determineWinner($dreamfight->player_one_choice, $dreamfight->player_two_choice);
-
-            if ($winner === 'p1') {
-                $dreamfight->player_one_score += 1;
-            } elseif ($winner === 'p2') {
-                $dreamfight->player_two_score += 1;
-            }
-
-            // Reset choices for next round
-            $dreamfight->player_one_choice = null;
-            $dreamfight->player_two_choice = null;
-
-            // If 3 rounds done → finish fight
-            if ($dreamfight->current_round >= 3) {
-                $dreamfight->status = 'finished';
-                if ($dreamfight->player_one_score > $dreamfight->player_two_score) {
-                    $dreamfight->winner = $dreamfight->playerOne->name ?? 'Player 1';
-                } elseif ($dreamfight->player_two_score > $dreamfight->player_one_score) {
-                    $dreamfight->winner = $dreamfight->playerTwo->name ?? 'Player 2';
-                } else {
-                    $dreamfight->winner = 'Draw';
-                }
-            } else {
-                $dreamfight->current_round += 1;
-            }
+        if (Auth::id() === $dreamfight->player_two_id && !$dreamfight->player_two_choice) {
+            $dreamfight->player_two_choice = $request->choice;
         }
 
         $dreamfight->save();
 
-        return redirect()->route('dreamfights.index');
+        // If BOTH choices now present → calculate round
+        if ($dreamfight->player_one_choice && $dreamfight->player_two_choice) {
+            $this->resolveRound($dreamfight);
+        }
+
+        return back();
     }
 
-    private function determineWinner($p1, $p2)
+    private function resolveRound(Dreamfight $fight)
     {
+        $p1 = $fight->player_one_choice;
+        $p2 = $fight->player_two_choice;
+
+        // MMA RPS rules
         $beats = [
             'wrestling' => 'kickbox',
             'kickbox' => 'jiu-jitsu',
-            'jiu-jitsu' => 'wrestling',
+            'jiu-jitsu' => 'wrestling'
         ];
 
-        if ($p1 === $p2) {
-            return null; // draw
+        if ($p1 && $p2) {
+            if ($p1 === $p2) {
+                // draw round
+            } elseif ($beats[$p1] === $p2) {
+                $fight->player_one_score++;
+            } else {
+                $fight->player_two_score++;
+            }
         }
 
-        return $beats[$p1] === $p2 ? 'p1' : 'p2';
+        // Reset choices for next round or finish
+        if ($fight->current_round < 3) {
+            $fight->current_round++;
+            $fight->player_one_choice = null;
+            $fight->player_two_choice = null;
+        } else {
+            // Fight finished
+            if ($fight->player_one_score > $fight->player_two_score) {
+                $fight->winner = $fight->playerOne->name ?? 'P1';
+            } elseif ($fight->player_two_score > $fight->player_one_score) {
+                $fight->winner = $fight->playerTwo->name ?? 'P2';
+            } else {
+                $fight->winner = 'Draw';
+            }
+            $fight->status = 'finished';
+        }
+
+        $fight->save();
     }
 }

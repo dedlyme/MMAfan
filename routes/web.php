@@ -71,9 +71,11 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/pound', [PoundAdminController::class, 'index'])->name('pound.index');
     Route::post('/pound', [PoundAdminController::class, 'store'])->name('pound.store');
+    // ✅ New single "Save All" endpoint
+    Route::patch('/pound/update-all', [PoundAdminController::class, 'updateAll'])->name('pound.updateAll');
+    // Legacy single update & delete (still work if needed)
     Route::patch('/pound/{fighter}', [PoundAdminController::class, 'update'])->name('pound.update');
     Route::delete('/pound/{fighter}', [PoundAdminController::class, 'destroy'])->name('pound.destroy');
-    Route::patch('/pound/update-all', [PoundAdminController::class, 'updateAll'])->name('pound.updateAll');
 });
 
 /*
@@ -160,8 +162,11 @@ Route::middleware('auth')->prefix('dreamfights')->name('dreamfights.')->group(fu
     Route::get('/', [DreamfightController::class, 'index'])->name('index');
     Route::post('/', [DreamfightController::class, 'create'])->name('create');
     Route::post('/{dreamfight}/join', [DreamfightController::class, 'join'])->name('join');
+
+    // 🥊 Dedicated fight page
+    Route::get('/{dreamfight}', [DreamfightController::class, 'show'])->name('show');
+
     Route::post('/{dreamfight}/choose', [DreamfightController::class, 'choose'])->name('choose');
 });
-
 
 require __DIR__.'/auth.php';

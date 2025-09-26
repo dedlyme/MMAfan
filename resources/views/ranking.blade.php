@@ -1,25 +1,50 @@
 @extends('layouts.app')
 
-@section('content')
-    <h1 class="text-5xl md:text-6xl font-extrabold text-red-500 text-center mb-10 drop-shadow-lg">UFC Rankings</h1>
+@section('title', 'UFC Rankings')
 
+@section('content')
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+
+    <!-- 🥋 HEADER -->
+    <section class="text-center">
+        <h1 class="text-5xl md:text-6xl font-extrabold text-red-600 dark:text-white mb-6 drop-shadow">
+            UFC Rankings
+        </h1>
+        <p class="text-gray-600 dark:text-gray-300 text-lg max-w-2xl mx-auto">
+            Explore divisions, champions, and the top fighters in each weight class.
+        </p>
+    </section>
+
+    <!-- 📊 DIVISIONS -->
     @if(isset($divisions) && $divisions->isNotEmpty())
-        <h2 class="text-3xl font-bold mb-6 text-white drop-shadow">Divisions</h2>
+        <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200">
+            Divisions
+        </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @foreach($divisions as $d)
-                <a href="{{ route('ranking.show', $d) }}" 
-                   class="bg-gray-800/50 hover:bg-gray-700/60 backdrop-blur-md p-6 rounded-3xl shadow-2xl transform transition duration-300 hover:scale-105 flex flex-col items-center justify-center text-center hover:shadow-red-500/50">
-                    <h3 class="text-2xl font-bold text-white mb-2">{{ $d->name }}</h3>
-                    <span class="text-gray-400 text-sm">{{ $d->rankings->count() }} fighters</span>
+                <a href="{{ route('ranking.show', $d) }}"
+                   class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-md hover:shadow-xl transition duration-300 transform hover:-translate-y-2 group">
+                    <h3 class="text-2xl font-bold text-gray-800 dark:text-white group-hover:text-red-600 transition">
+                        {{ $d->name }}
+                    </h3>
+                    <span class="text-gray-500 dark:text-gray-400 text-sm block mt-2">
+                        {{ $d->rankings->count() }} fighters
+                    </span>
                 </a>
             @endforeach
         </div>
     @endif
 
-    <div class="mt-12 space-y-6">
-        <h2 id="rotating-title" class="text-4xl font-bold mb-6 text-red-500 drop-shadow">Top Fighters</h2>
-        <div id="rotating-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 opacity-100 transition-opacity duration-500">
-            <div id="rotating-placeholder" class="col-span-full text-center text-gray-400 py-6">Loading...</div>
+    <!-- 🥇 TOP FIGHTERS ROTATOR -->
+    <div class="mt-16 space-y-6">
+        <h2 id="rotating-title" class="text-4xl font-extrabold mb-6 text-red-600 dark:text-white">
+            Top Fighters
+        </h2>
+        <div id="rotating-container"
+             class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 opacity-100 transition-opacity duration-500">
+            <div id="rotating-placeholder" class="col-span-full text-center text-gray-400 dark:text-gray-500 py-6">
+                Loading...
+            </div>
         </div>
     </div>
 
@@ -58,35 +83,38 @@
         function renderDivision(index){
             if(!divisions || divisions.length === 0){
                 titleEl.textContent = "No divisions available";
-                containerEl.innerHTML = '<div class="col-span-full text-center text-gray-400 py-6">No fighters to show.</div>';
+                containerEl.innerHTML = '<div class="col-span-full text-center text-gray-400 dark:text-gray-500 py-6">No fighters to show.</div>';
                 return;
             }
 
             const div = divisions[index];
-            titleEl.textContent = div.name + " - Top 15 + Champion";
+            titleEl.textContent = `${div.name} — Top Fighters`;
             containerEl.style.opacity = 0;
+
             setTimeout(() => {
                 containerEl.innerHTML = '';
                 if(!div.rankings || div.rankings.length === 0){
-                    containerEl.innerHTML = '<div class="col-span-full text-center text-gray-400 py-6">Šajā divīzijā vēl nav ierakstu.</div>';
+                    containerEl.innerHTML = '<div class="col-span-full text-center text-gray-400 dark:text-gray-500 py-6">No fighters in this division yet.</div>';
                     containerEl.style.opacity = 1;
                     return;
                 }
 
                 const grid = document.createElement('div');
                 grid.className = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 col-span-full";
+
                 div.rankings.forEach(f => {
                     const fighterEl = document.createElement('div');
-                    fighterEl.className = "bg-gray-800/50 hover:bg-gray-700/60 backdrop-blur-md p-4 rounded-2xl shadow-lg flex justify-between items-center transition duration-300 transform hover:scale-105 hover:shadow-red-500/50";
+                    fighterEl.className = "bg-white dark:bg-gray-800 rounded-2xl p-4 shadow hover:shadow-xl transform transition duration-300 hover:-translate-y-1 flex justify-between items-center";
                     const left = document.createElement('div');
-                    left.innerHTML = `<span class="text-xl font-semibold text-white">${f.is_champion ? 'C' : f.rank}. ${f.fighter_name}</span>`;
-                    if(f.is_champion) left.innerHTML += ' <span class="text-red-500 font-bold ml-2">Champion</span>';
+                    left.innerHTML = `<span class="text-lg font-semibold text-gray-900 dark:text-white">${f.is_champion ? 'C' : f.rank}. ${f.fighter_name}</span>`;
+                    if(f.is_champion) left.innerHTML += ' <span class="ml-2 text-red-600 dark:text-red-400 font-bold">Champion</span>';
                     fighterEl.appendChild(left);
                     grid.appendChild(fighterEl);
                 });
+
                 containerEl.appendChild(grid);
                 containerEl.style.opacity = 1;
-            }, 180);
+            }, 200);
         }
 
         renderDivision(currentIndex);
@@ -99,4 +127,5 @@
         }
     </script>
     @endpush
+</div>
 @endsection
