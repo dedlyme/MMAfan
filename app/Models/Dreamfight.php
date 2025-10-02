@@ -19,11 +19,27 @@ class Dreamfight extends Model
         'winner',
         'player_one_score',
         'player_two_score',
-        'status'
+        'status',
+        'current_round'
     ];
 
-    public function playerOne() { return $this->belongsTo(User::class, 'player_one_id'); }
-    public function playerTwo() { return $this->belongsTo(User::class, 'player_two_id'); }
-    public function fighterOne() { return $this->belongsTo(Fighter::class, 'player_one_fighter_id'); }
-    public function fighterTwo() { return $this->belongsTo(Fighter::class, 'player_two_fighter_id'); }
+    public function playerOne()
+    {
+        return $this->belongsTo(User::class, 'player_one_id');
+    }
+
+    public function playerTwo()
+    {
+        return $this->belongsTo(User::class, 'player_two_id');
+    }
+
+    public function fighterOne()
+    {
+        return $this->belongsTo(Fighter::class, 'player_one_fighter_id');
+    }
+
+    public function fighterTwo()
+    {
+        return $this->belongsTo(Fighter::class, 'player_two_fighter_id');
+    }
 }

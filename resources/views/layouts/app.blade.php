@@ -9,17 +9,24 @@
 </head>
 <body class="bg-lightBg text-gray-900 dark:bg-darkBg dark:text-white min-h-screen flex flex-col transition-colors duration-500">
 
-    <!-- Navbar -->
-    @include('partials.navbar')
+    {{-- ====== NAVBAR (vienmēr redzama) ====== --}}
+    <header class="relative z-50">
+        @include('partials.navbar')
+    </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 max-w-7xl mx-auto px-6 py-8 space-y-8">
-        @yield('content')
+    {{-- ====== BACKGROUND (no bērna lapas) ====== --}}
+    @yield('background')
+
+    {{-- ====== GALVENĀ SATURA ZONA ====== --}}
+    <main class="flex-1 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            @yield('content')
+        </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 py-6 mt-auto transition-colors duration-500">
-        <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center">
+    {{-- ====== FOOTER ====== --}}
+    <footer class="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 py-6 mt-auto transition-colors duration-500 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
             <p>&copy; {{ date('Y') }} UFC MMA. All rights reserved.</p>
         </div>
     </footer>

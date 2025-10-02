@@ -41,7 +41,6 @@ class PoundAdminController extends Controller
         $fightersData = $request->input('fighters', []);
 
         DB::transaction(function () use ($fightersData) {
-            // 🔹 Step 1: Set temporary unique negative ranks to avoid unique constraint conflicts
             foreach ($fightersData as $id => $data) {
                 PoundFighter::where('id', $id)->update(['rank' => -$id]);
             }

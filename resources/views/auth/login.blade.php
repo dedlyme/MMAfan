@@ -6,18 +6,18 @@
     <title>Login - UFC MMA</title>
     @vite('resources/css/app.css')
 </head>
-<body class="relative bg-black text-white min-h-screen flex items-center justify-center">
+<body class="relative min-h-screen flex items-center justify-center">
 
-    <!-- Background with blur -->
+    <!-- ===== FONS ===== -->
     <div class="absolute inset-0">
-        <img src="{{ asset('wallpaper2.png') }}" alt="Background" 
-             class="w-full h-full object-cover filter blur-sm scale-105">
-        <div class="absolute inset-0 bg-black/70"></div>
+        <img src="{{ asset('login.png') }}" alt="Background"
+             class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
     </div>
 
-    <!-- Login card -->
-    <div class="relative z-10 bg-gray-900/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl w-full max-w-md">
-        <h1 class="text-3xl font-bold text-center text-yellow-400 mb-6">Login</h1>
+    <!-- ===== LOGIN KARTE ===== -->
+    <div class="relative z-10 w-full max-w-md bg-white/10 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-white/20">
+        <h1 class="text-3xl font-extrabold text-center text-white mb-6 drop-shadow-md">Login</h1>
 
         <!-- Session Status -->
         @if (session('status'))
@@ -26,14 +26,14 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('login') }}" class="space-y-5">
+        <form method="POST" action="{{ route('login') }}" class="space-y-6">
             @csrf
 
-            <!-- Email Address -->
+            <!-- Email -->
             <div>
-                <label for="email" class="block mb-2 text-sm font-medium">Email</label>
+                <label for="email" class="block mb-2 text-sm font-medium text-gray-200">Email</label>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username"
-                       class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-yellow-400">
+                       class="w-full px-4 py-3 rounded-lg bg-white/20 text-white placeholder-gray-300 border border-white/30 focus:ring-2 focus:ring-yellow-400 outline-none">
                 @error('email')
                     <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                 @enderror
@@ -41,41 +41,40 @@
 
             <!-- Password -->
             <div>
-                <label for="password" class="block mb-2 text-sm font-medium">Password</label>
+                <label for="password" class="block mb-2 text-sm font-medium text-gray-200">Password</label>
                 <input id="password" type="password" name="password" required autocomplete="current-password"
-                       class="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white focus:ring-2 focus:ring-yellow-400">
+                       class="w-full px-4 py-3 rounded-lg bg-white/20 text-white placeholder-gray-300 border border-white/30 focus:ring-2 focus:ring-yellow-400 outline-none">
                 @error('password')
                     <p class="text-red-400 text-sm mt-1">{{ $message }}</p>
                 @enderror
             </div>
 
-            <!-- Remember Me -->
-            <div class="flex items-center justify-between">
-                <label for="remember_me" class="flex items-center text-sm">
+            <!-- Remember me + Forgot -->
+            <div class="flex items-center justify-between text-sm">
+                <label class="flex items-center text-gray-200">
                     <input id="remember_me" type="checkbox" name="remember"
-                           class="rounded border-gray-600 bg-gray-800 text-yellow-400 focus:ring-yellow-400">
+                           class="rounded border-gray-600 bg-white/20 text-yellow-400 focus:ring-yellow-400">
                     <span class="ml-2">Remember me</span>
                 </label>
 
                 @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" 
-                       class="text-sm text-yellow-400 hover:underline">
+                    <a href="{{ route('password.request') }}" class="text-yellow-400 hover:underline">
                         Forgot password?
                     </a>
                 @endif
             </div>
 
             <!-- Submit -->
-            <button type="submit" 
-                    class="w-full bg-yellow-400 text-black font-bold py-3 rounded-lg hover:bg-yellow-300 transition">
+            <button type="submit"
+                    class="w-full bg-yellow-400 text-black font-bold py-3 rounded-full shadow-md hover:bg-yellow-300 transition">
                 Log in
             </button>
         </form>
 
         <!-- Register redirect -->
-        <p class="mt-6 text-center text-gray-400">
-            Don't have an account? 
-            <a href="{{ route('register') }}" class="text-yellow-400 hover:underline">
+        <p class="mt-6 text-center text-gray-300 text-sm">
+            Don’t have an account?
+            <a href="{{ route('register') }}" class="text-yellow-400 font-semibold hover:underline">
                 Register here
             </a>
         </p>

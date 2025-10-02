@@ -8,14 +8,17 @@
 </head>
 <body class="relative bg-black text-white min-h-screen overflow-hidden">
 
-    <!-- Background with blur -->
-    <div class="absolute inset-0">
-        <img src="{{ asset('wallpaper.png') }}" alt="Background" 
-             class="w-full h-full object-cover filter blur-sm scale-105">
-        <div class="absolute inset-0 bg-black/70"></div>
+    <!-- ====== VIDEO FONS ====== -->
+    <div class="absolute inset-0 overflow-hidden">
+        <video autoplay muted loop playsinline class="w-full h-full object-cover">
+            <source src="{{ asset('darbam.mp4') }}" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <!-- Melns pārklājums, lai teksts būtu redzams -->
+        <div class="absolute inset-0 bg-black/60"></div>
     </div>
 
-    <!-- Navigation bar -->
+    <!-- ====== NAVIGĀCIJA ====== -->
     <nav class="relative z-10 flex justify-between items-center p-6 bg-black/40 backdrop-blur-md">
         <div class="text-2xl font-bold tracking-wide text-yellow-400">
             UFC MMA
@@ -36,7 +39,7 @@
         </ul>
     </nav>
 
-    <!-- Hero section -->
+    <!-- ====== HERO SEKCIJA ====== -->
     <section class="relative z-10 flex flex-col justify-center items-center text-center h-screen px-6">
         <h1 class="text-5xl md:text-7xl font-extrabold text-white drop-shadow-lg animate-fade-in">
             Welcome to <span class="text-yellow-400">UFC & MMA</span>
@@ -57,7 +60,7 @@
         </div>
     </section>
 
-    <!-- Tailwind Animations -->
+    <!-- ====== TAILWIND ANIMĀCIJAS ====== -->
     <style>
         @keyframes fade-in {
             0% { opacity: 0; transform: translateY(20px); }
