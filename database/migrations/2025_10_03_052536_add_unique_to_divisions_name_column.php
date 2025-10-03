@@ -7,15 +7,15 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::table('rankings', function (Blueprint $table) {
-            $table->boolean('is_champion')->default(false)->after('rank');
+        Schema::table('divisions', function (Blueprint $table) {
+            $table->string('name')->unique()->change();
         });
     }
 
     public function down(): void
     {
-        Schema::table('rankings', function (Blueprint $table) {
-            $table->dropColumn('is_champion');
+        Schema::table('divisions', function (Blueprint $table) {
+            $table->dropUnique(['name']);
         });
     }
 };

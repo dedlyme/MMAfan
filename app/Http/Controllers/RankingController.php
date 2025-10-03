@@ -8,27 +8,18 @@ use App\Models\Ranking;
 
 class RankingController extends Controller
 {
-    /**
-     * Show all divisions with their rankings.
-     */
     public function index()
     {
         $divisions = Division::with('rankings')->get();
         return view('ranking', compact('divisions'));
     }
 
-    /**
-     * Show one specific division with its fighters.
-     */
     public function show(Division $division)
     {
         $division->load('rankings');
         return view('ranking', ['division' => $division]);
     }
 
-    /**
-     * Store a new fighter in a division.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -38,19 +29,33 @@ class RankingController extends Controller
             'is_champion'  => 'nullable|boolean',
         ]);
 
+        $division = Division::findOrFail($validated['division_id']);
+
+        // ✅ Pārbauda vai fighter jau eksistē šajā divīzijā
+        if (Ranking::where('division_id', $division->id)
+            ->where('fighter_name', $validated['fighter_name'])
+            ->exists()) {
+            return back()->with('error', 'This fighter already exists in this division.');
+        }
+
+        // ✅ Pārbauda vai jau ir čempions šajā divīzijā
+        if (!empty($validated['is_champion']) &&
+            Ranking::where('division_id', $division->id)
+                ->where('is_champion', true)
+                ->exists()) {
+            return back()->with('error', 'This division already has a champion.');
+        }
+
         Ranking::create([
-            'division_id'  => $validated['division_id'],
+            'division_id'  => $division->id,
             'fighter_name' => $validated['fighter_name'],
-            'rank'         => $validated['rank'] ?? (Ranking::where('division_id', $validated['division_id'])->count() + 1),
+            'rank'         => $validated['rank'] ?? ($division->rankings()->count() + 1),
             'is_champion'  => $validated['is_champion'] ?? 0,
         ]);
 
         return back()->with('success', 'Fighter added successfully.');
     }
 
-    /**
-     * Update a fighter.
-     */
     public function update(Request $request, Ranking $ranking)
     {
         $validated = $request->validate([
@@ -58,6 +63,23 @@ class RankingController extends Controller
             'rank'         => 'nullable|integer',
             'is_champion'  => 'nullable|boolean',
         ]);
+
+        // ✅ Pārbauda vai jau ir cits fighter ar tādu pašu vārdu šajā divīzijā
+        if (Ranking::where('division_id', $ranking->division_id)
+            ->where('fighter_name', $validated['fighter_name'])
+            ->where('id', '!=', $ranking->id)
+            ->exists()) {
+            return back()->with('error', 'This fighter name already exists in this division.');
+        }
+
+        // ✅ Ja tiek uzstādīts čempions, pārbauda vai jau nav cits čempions
+        if (!empty($validated['is_champion']) &&
+            Ranking::where('division_id', $ranking->division_id)
+                ->where('is_champion', true)
+                ->where('id', '!=', $ranking->id)
+                ->exists()) {
+            return back()->with('error', 'This division already has a champion.');
+        }
 
         $ranking->update([
             'fighter_name' => $validated['fighter_name'],
@@ -68,18 +90,12 @@ class RankingController extends Controller
         return back()->with('success', 'Fighter updated successfully.');
     }
 
-    /**
-     * Delete a fighter.
-     */
     public function destroy(Ranking $ranking)
     {
         $ranking->delete();
         return back()->with('success', 'Fighter removed successfully.');
     }
 
-    /**
-     * Update the order of fighters in a division (drag & drop support).
-     */
     public function updateOrder(Request $request, Division $division)
     {
         $validated = $request->validate([
