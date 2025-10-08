@@ -12,10 +12,30 @@ class DreamfightController extends Controller
     // --- LIST OF FIGHTS ---
     public function index()
     {
+        // Fighters for server-side selects
         $fighters = Fighter::orderBy('first_name')->orderBy('last_name')->get();
-        $dreamfights = Dreamfight::with(['playerOne', 'playerTwo'])->latest()->get();
 
-        return view('dreamfights', compact('fighters', 'dreamfights'));
+        // Lightweight array for the JS filter (id + names only)
+        $fighterList = Fighter::orderBy('first_name')
+            ->orderBy('last_name')
+            ->get(['id', 'first_name', 'last_name', 'nickname'])
+            ->map(function ($f) {
+                return [
+                    'id'         => $f->id,
+                    'first_name' => $f->first_name ?? '',
+                    'last_name'  => $f->last_name ?? '',
+                    'nickname'   => $f->nickname ?? '',
+                ];
+            })
+            ->toArray();
+
+        // Show only not-finished fights in the lobby
+        $dreamfights = Dreamfight::with(['playerOne', 'playerTwo'])
+            ->whereIn('status', ['waiting', 'in_progress'])
+            ->latest()
+            ->get();
+
+        return view('dreamfights', compact('fighters', 'fighterList', 'dreamfights'));
     }
 
     // --- CREATE FIGHT ---
@@ -63,8 +83,13 @@ class DreamfightController extends Controller
     // --- SHOW GAME PAGE ---
     public function show(Dreamfight $dreamfight)
     {
-        // ✅ allow the creator to enter even if no opponent joined yet
-        abort_unless(Auth::id() === $dreamfight->player_one_id || Auth::id() === $dreamfight->player_two_id || $dreamfight->player_two_id === null, 403);
+        // allow the creator to enter even if no opponent joined yet
+        abort_unless(
+            Auth::id() === $dreamfight->player_one_id ||
+            Auth::id() === $dreamfight->player_two_id ||
+            $dreamfight->player_two_id === null,
+            403
+        );
 
         return view('dreamfight_game', compact('dreamfight'));
     }

@@ -6,18 +6,29 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
+    /**
+     * Run the migrations.
+     */
     public function up(): void
     {
         Schema::create('fighters', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('external_id')->unique(); // SportsData FighterId
-            $table->string('first_name');
-            $table->string('last_name');
+
+            // ✅ External ID from SportsData API
+            $table->bigInteger('external_id')->nullable()->unique();
+
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
             $table->string('nickname')->nullable();
+            $table->string('weight_class')->nullable();
+
             $table->timestamps();
         });
     }
 
+    /**
+     * Reverse the migrations.
+     */
     public function down(): void
     {
         Schema::dropIfExists('fighters');

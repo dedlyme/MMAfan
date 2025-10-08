@@ -5,7 +5,7 @@
 @section('content')
 <div class="max-w-5xl mx-auto py-12 px-4 space-y-8">
 
-    <!-- Page Title -->
+    <!-- ===== Page Title ===== -->
     <div class="text-center">
         <h1 class="text-5xl md:text-6xl font-extrabold text-gray-900 dark:text-white mb-2">
             Pound for Pound Top 10
@@ -14,6 +14,25 @@
             The most elite fighters ranked regardless of weight class.
         </p>
     </div>
+
+    <!-- ===== Flash messages ===== -->
+    @if(session('success'))
+        <div class="bg-green-500 text-white p-3 rounded-lg shadow-md">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('warning'))
+        <div class="bg-yellow-400 text-black p-3 rounded-lg shadow-md">
+            {{ session('warning') }}
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="bg-red-500 text-white p-3 rounded-lg shadow-md">
+            {{ $errors->first() }}
+        </div>
+    @endif
 
     <div class="bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-2xl transition-colors duration-300">
 

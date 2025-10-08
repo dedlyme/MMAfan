@@ -1,69 +1,111 @@
-@extends('layouts.app')
+<?php
 
-@section('title', 'UFC Divisions')
+namespace App\Http\Controllers\Admin;
 
-@section('content')
-<div class="max-w-7xl mx-auto py-8 px-4 space-y-6">
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Division;
+use App\Models\Ranking;
 
-    <h1 class="text-3xl font-extrabold mb-6 text-yellow-400 text-center">UFC Divisions</h1>
+class DivisionController extends Controller
+{
+    public function index()
+    {
+        $divisions = Division::with('rankings')->get();
+        return view('admin.divisions.index', compact('divisions'));
+    }
 
-    {{-- Admin: Add new division --}}
-    @if(auth()->check() && auth()->user()->is_admin)
-        <form action="{{ route('admin.divisions.store') }}" method="POST" class="mb-8 flex flex-col sm:flex-row gap-2">
-            @csrf
-            <div class="flex-1">
-                <input type="text" name="name" placeholder="New Division"
-                       class="w-full p-3 rounded-lg border @error('name') border-red-500 @else border-gray-700 @enderror bg-gray-800 text-white focus:ring-2 focus:ring-yellow-400">
-                @error('name')
-                    <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-lg text-white font-semibold transition">
-                Add Division
-            </button>
-        </form>
-    @endif
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255|unique:divisions,name'
+        ]);
 
-    {{-- Success message --}}
-    @if(session('success'))
-        <div class="bg-green-600 text-white p-3 rounded-lg shadow-md mb-6">
-            {{ session('success') }}
-        </div>
-    @endif
+        Division::create(['name' => $request->name]);
 
-    {{-- Divisions Grid --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        @foreach($divisions as $division)
-            <div class="bg-gray-900 rounded-2xl shadow-lg overflow-hidden">
-                {{-- Division Header --}}
-                <div class="flex justify-between items-center p-6 bg-gray-800">
-                    <div>
-                        <h2 class="text-2xl font-bold text-white">{{ $division->name }}</h2>
-                        <span class="text-gray-400 text-sm">{{ $division->rankings->count() }} fighters</span>
-                    </div>
-                    @if(auth()->check() && auth()->user()->is_admin)
-                        <button onclick="document.getElementById('edit-division-{{ $division->id }}').classList.toggle('hidden')"
-                                class="bg-yellow-600 hover:bg-yellow-500 px-3 py-1 rounded-lg text-black font-semibold transition">
-                            Edit
-                        </button>
-                    @endif
-                </div>
+        return redirect()->route('admin.divisions.index')->with('success', 'Division created successfully.');
+    }
 
-                {{-- Fighters List --}}
-                <div class="bg-gray-800 p-4 space-y-2">
-                    @php
-                        $sorted = $division->rankings->sortBy(fn($f) => $f->is_champion ? 0 : $f->rank);
-                    @endphp
-                    @foreach($sorted as $fighter)
-                        <div class="p-3 bg-gray-700 rounded-lg flex items-center justify-between">
-                            <span class="text-white font-medium">
-                                {{ $fighter->is_champion ? 'C' : $fighter->rank }}. {{ $fighter->fighter_name }}
-                            </span>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        @endforeach
-    </div>
-</div>
-@endsection
+    public function update(Request $request, Division $division)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255'
+        ]);
+
+        $division->update(['name' => $request->name]);
+
+        // ✅ Savācam visus rankus no esošajiem + jaunajiem
+        $ranks = [];
+
+        if ($request->has('fighters')) {
+            foreach ($request->fighters as $id => $fighterData) {
+                $rank = isset($fighterData['rank']) ? (int) $fighterData['rank'] : null;
+
+                if ($rank) {
+                    if ($rank > 16) {
+                        return back()->withErrors(['fighters.' . $id . '.rank' => "Rank cannot be greater than 16."]);
+                    }
+                    if (in_array($rank, $ranks)) {
+                        return back()->withErrors(['fighters.' . $id . '.rank' => "Duplicate rank ($rank) is not allowed."]);
+                    }
+                    $ranks[] = $rank;
+                }
+            }
+        }
+
+        if ($request->filled('new_fighter.rank')) {
+            $newRank = (int) $request->new_fighter['rank'];
+            if ($newRank > 16) {
+                return back()->withErrors(['new_fighter.rank' => "Rank cannot be greater than 16."]);
+            }
+            if (in_array($newRank, $ranks)) {
+                return back()->withErrors(['new_fighter.rank' => "Duplicate rank ($newRank) is not allowed."]);
+            }
+            $ranks[] = $newRank;
+        }
+
+        // === Update existing fighters ===
+        if ($request->has('fighters')) {
+            foreach ($request->fighters as $id => $fighterData) {
+                $fighter = Ranking::find($id);
+                if ($fighter && $fighter->division_id === $division->id) {
+                    $fighter->fighter_name = $fighterData['fighter_name'];
+                    $fighter->rank = $fighterData['rank'];
+                    $fighter->is_champion = isset($fighterData['is_champion']) ? 1 : 0;
+                    $fighter->save();
+                }
+            }
+        }
+
+        // === Add new fighter ===
+        if ($request->filled('new_fighter.fighter_name')) {
+            if ($division->rankings()->count() >= 16) {
+                return back()->withErrors(['new_fighter.fighter_name' => 'This division already has the maximum of 16 fighters.']);
+            }
+
+            if (isset($request->new_fighter['is_champion']) && $division->rankings()->where('is_champion', true)->exists()) {
+                return back()->withErrors(['new_fighter.is_champion' => 'This division already has a champion.']);
+            }
+
+            $division->rankings()->create([
+                'fighter_name' => $request->new_fighter['fighter_name'],
+                'rank' => $request->new_fighter['rank'] ?? ($division->rankings()->count() + 1),
+                'is_champion' => isset($request->new_fighter['is_champion']) ? 1 : 0,
+            ]);
+        }
+
+        return redirect()->route('admin.divisions.index')->with('success', 'Division updated successfully.');
+    }
+
+    public function destroy(Division $division)
+    {
+        $division->delete();
+        return redirect()->route('admin.divisions.index')->with('success', 'Division deleted successfully.');
+    }
+
+    public function destroyFighter(Ranking $ranking)
+    {
+        $ranking->delete();
+        return back()->with('success', 'Fighter deleted successfully.');
+    }
+}

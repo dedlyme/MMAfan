@@ -9,17 +9,27 @@ use App\Models\Ranking;
 
 class AdminRankingController extends Controller
 {
-    // Pievieno jaunu fighter divīzijai
     public function store(Request $request, Division $division)
     {
         $request->validate([
             'fighter_name' => 'required|string|max:255',
-            'rank' => 'nullable|integer|min:1',
+            'rank' => 'nullable|integer|min:1|max:16',
             'is_champion' => 'nullable|boolean',
         ]);
 
-        if ($request->is_champion) {
-            Ranking::where('division_id', $division->id)->update(['is_champion' => false]);
+        // ✅ Pārbaudām vai jau ir tāds pats rank
+        if ($request->filled('rank') && $division->rankings()->where('rank', $request->rank)->exists()) {
+            return back()->withErrors(['rank' => "Rank {$request->rank} is already taken in this division."]);
+        }
+
+        // ✅ Pārbaudām max 16 cīnītāji
+        if ($division->rankings()->count() >= 16) {
+            return back()->withErrors(['fighter_name' => 'This division already has the maximum of 16 fighters.']);
+        }
+
+        // ✅ Tikai viens čempions
+        if ($request->is_champion && $division->rankings()->where('is_champion', true)->exists()) {
+            return back()->withErrors(['is_champion' => 'This division already has a champion.']);
         }
 
         $division->rankings()->create([
@@ -31,7 +41,6 @@ class AdminRankingController extends Controller
         return back()->with('success', 'Fighter added successfully.');
     }
 
-    // Dzēš fighter
     public function destroy(Ranking $ranking)
     {
         $ranking->delete();

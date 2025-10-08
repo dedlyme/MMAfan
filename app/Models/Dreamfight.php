@@ -14,13 +14,13 @@ class Dreamfight extends Model
         'player_two_id',
         'player_one_fighter_id',
         'player_two_fighter_id',
-        'player_one_choice',
-        'player_two_choice',
-        'winner',
+        'status',
+        'current_round',
         'player_one_score',
         'player_two_score',
-        'status',
-        'current_round'
+        'player_one_choice',
+        'player_two_choice',
+        'winner'
     ];
 
     public function playerOne()
@@ -33,6 +33,7 @@ class Dreamfight extends Model
         return $this->belongsTo(User::class, 'player_two_id');
     }
 
+    /** ✅ NEW: fighter relations */
     public function fighterOne()
     {
         return $this->belongsTo(Fighter::class, 'player_one_fighter_id');
