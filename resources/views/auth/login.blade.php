@@ -57,11 +57,7 @@
                     <span class="ml-2">Remember me</span>
                 </label>
 
-                @if (Route::has('password.request'))
-                    <a href="{{ route('password.request') }}" class="text-yellow-400 hover:underline">
-                        Forgot password?
-                    </a>
-                @endif
+             
             </div>
 
             <!-- Submit -->

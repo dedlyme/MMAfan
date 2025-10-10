@@ -1,88 +1,50 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UFC MMA</title>
-    @vite('resources/css/app.css')
-</head>
-<body class="relative bg-black text-white min-h-screen overflow-hidden">
+@extends('layouts.app')
 
-    <!-- ====== VIDEO FONS ====== -->
-    <div class="absolute inset-0 overflow-hidden">
-        <video autoplay muted loop playsinline class="w-full h-full object-cover">
-            <source src="{{ asset('darbam.mp4') }}" type="video/mp4">
-            Your browser does not support the video tag.
-        </video>
-        <!-- Melns pārklājums, lai teksts būtu redzams -->
-        <div class="absolute inset-0 bg-black/60"></div>
+@section('title', 'Welcome')
+
+@section('background')
+    <!-- Fullscreen background video -->
+    <div class="fixed inset-0 -z-10 overflow-hidden">
+        <iframe 
+            src="https://drive.google.com/file/d/1F-MDW7pERvPThhxPtQgUfIMKKiR31bv1/preview?autoplay=1&mute=1&loop=1"
+            frameborder="0"
+            allow="autoplay; fullscreen"
+            class="absolute top-0 left-0 w-full h-full object-cover">
+        </iframe>
+        <!-- Dark overlay for readability -->
+        <div class="absolute inset-0 bg-black/50"></div>
     </div>
+@endsection
 
-    <!-- ====== NAVIGĀCIJA ====== -->
-    <nav class="relative z-10 flex justify-between items-center p-6 bg-black/40 backdrop-blur-md">
-        <div class="text-2xl font-bold tracking-wide text-yellow-400">
-            UFC MMA
-        </div>
-        <ul class="flex space-x-6">
-            <li>
-                <a href="{{ route('login') }}" 
-                   class="px-4 py-2 border border-yellow-400 text-yellow-400 rounded-lg hover:bg-yellow-400 hover:text-black transition">
-                   Login
-                </a>
-            </li>
-            <li>
-                <a href="{{ route('register') }}" 
-                   class="px-4 py-2 bg-yellow-400 text-black font-semibold rounded-lg hover:bg-yellow-300 transition">
-                   Register
-                </a>
-            </li>
-        </ul>
-    </nav>
+@section('content')
+<div class="min-h-screen flex flex-col items-center justify-center text-center px-6 relative z-10">
+    <!-- Title -->
+    <h1 class="text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg mb-4">
+        Welcome to UFC MMA Universe
+    </h1>
 
-    <!-- ====== HERO SEKCIJA ====== -->
-    <section class="relative z-10 flex flex-col justify-center items-center text-center h-screen px-6">
-        <h1 class="text-5xl md:text-7xl font-extrabold text-white drop-shadow-lg animate-fade-in">
-            Welcome to <span class="text-yellow-400">UFC & MMA</span>
-        </h1>
-        <p class="mt-6 text-xl md:text-2xl max-w-2xl text-gray-300 animate-slide-up">
-            Follow the latest fights, rankings, and breaking news in the world of Mixed Martial Arts.
-        </p>
+    <!-- Subtitle -->
+    <p class="text-lg md:text-xl text-gray-200 max-w-2xl mb-10">
+        Step into the octagon of data — explore fighter rankings, pound-for-pound lists, dream fights, and live chat with other MMA fans.
+    </p>
 
-        <div class="mt-10 flex space-x-6 animate-bounce-slow">
-            <a href="{{ route('login') }}" 
-               class="px-6 py-3 bg-yellow-400 text-black font-bold rounded-lg hover:bg-yellow-300 transition">
-               Get Started
+    <!-- Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4">
+        @auth
+            <a href="{{ route('dashboard') }}"
+               class="bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-xl text-lg font-bold shadow-md transition transform hover:scale-105">
+                Go to Dashboard
             </a>
-            <a href="{{ route('register') }}" 
-               class="px-6 py-3 border-2 border-yellow-400 text-yellow-400 font-bold rounded-lg hover:bg-yellow-400 hover:text-black transition">
-               Join Now
+        @else
+            <a href="{{ route('login') }}"
+               class="bg-red-600 hover:bg-red-500 text-white px-8 py-3 rounded-xl text-lg font-bold shadow-md transition transform hover:scale-105">
+                Login
             </a>
-        </div>
-    </section>
-
-    <!-- ====== TAILWIND ANIMĀCIJAS ====== -->
-    <style>
-        @keyframes fade-in {
-            0% { opacity: 0; transform: translateY(20px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slide-up {
-            0% { opacity: 0; transform: translateY(40px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes bounce-slow {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        .animate-fade-in {
-            animation: fade-in 1s ease-out forwards;
-        }
-        .animate-slide-up {
-            animation: slide-up 1.5s ease-out forwards;
-        }
-        .animate-bounce-slow {
-            animation: bounce-slow 3s infinite;
-        }
-    </style>
-</body>
-</html>
+            <a href="{{ route('register') }}"
+               class="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 px-8 py-3 rounded-xl text-lg font-bold shadow-md transition transform hover:scale-105">
+                Register
+            </a>
+        @endauth
+    </div>
+</div>
+@endsection

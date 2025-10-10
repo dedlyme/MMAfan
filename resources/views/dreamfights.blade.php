@@ -8,6 +8,32 @@
         Dream Fights Lobby
     </h1>
 
+<div class="max-w-3xl mx-auto mb-8 p-5 bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-md text-left text-gray-700 dark:text-gray-200">
+    <h2 class="text-2xl font-bold text-red-500 mb-3"> How Dream Fights Work</h2>
+    <ul class="list-disc list-inside space-y-2 text-base leading-relaxed">
+        <li>Each player selects a fighter to represent them in the match.</li>
+        <li>The fight has <strong>3 rounds</strong>. In every round, both players choose one of three styles:
+            <span class="font-semibold text-red-500">Wrestling</span>,
+            <span class="font-semibold text-red-500">Kickbox</span>,
+            or <span class="font-semibold text-red-500">Jiu-Jitsu</span>.
+        </li>
+        <li>The system automatically compares both players’ choices:
+            <ul class="list-disc list-inside ml-5">
+                <li><strong>Wrestling</strong> beats Kickbox</li>
+                <li><strong>Kickbox</strong> beats Jiu-Jitsu</li>
+                <li><strong>Jiu-Jitsu</strong> beats Wrestling</li>
+            </ul>
+        </li>
+        <li>After 3 rounds, the fighter with the higher score wins.</li>
+        <li>If both players choose the same move, that round is a draw.</li>
+        <li>Once finished, the fight result is automatically shown and saved.</li>
+    </ul>
+    <p class="mt-4 text-sm text-gray-500 dark:text-gray-400 italic">
+        Tip: You can refresh the page or re-enter the fight if it’s waiting for another player.
+    </p>
+</div>
+
+
     @if(session('success'))
         <div class="bg-green-600 text-white p-4 mb-6 rounded-xl shadow-md">{{ session('success') }}</div>
     @endif
