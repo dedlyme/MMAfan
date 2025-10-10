@@ -3,32 +3,27 @@
 @section('title', 'Welcome')
 
 @section('background')
-    <!-- Fullscreen background video -->
-    <div class="fixed inset-0 -z-10 overflow-hidden">
-        <iframe 
-            src="https://drive.google.com/file/d/1F-MDW7pERvPThhxPtQgUfIMKKiR31bv1/preview?autoplay=1&mute=1&loop=1"
-            frameborder="0"
-            allow="autoplay; fullscreen"
-            class="absolute top-0 left-0 w-full h-full object-cover">
-        </iframe>
-        <!-- Dark overlay for readability -->
-        <div class="absolute inset-0 bg-black/50"></div>
-    </div>
+<div class="fixed inset-0 -z-10 overflow-hidden">
+    <iframe
+        src="https://www.youtube.com/embed/H8-0-VZ_uF0?autoplay=1&mute=1&loop=1&controls=0&playlist=H8-0-VZ_uF0&modestbranding=1&showinfo=0"
+        frameborder="0"
+        allow="autoplay; fullscreen"
+        class="absolute top-0 left-0 w-full h-full object-cover">
+    </iframe>
+    <div class="absolute inset-0 bg-black/50"></div>
+</div>
 @endsection
 
 @section('content')
 <div class="min-h-screen flex flex-col items-center justify-center text-center px-6 relative z-10">
-    <!-- Title -->
     <h1 class="text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg mb-4">
         Welcome to UFC MMA Universe
     </h1>
 
-    <!-- Subtitle -->
     <p class="text-lg md:text-xl text-gray-200 max-w-2xl mb-10">
         Step into the octagon of data — explore fighter rankings, pound-for-pound lists, dream fights, and live chat with other MMA fans.
     </p>
 
-    <!-- Buttons -->
     <div class="flex flex-col sm:flex-row gap-4">
         @auth
             <a href="{{ route('dashboard') }}"
