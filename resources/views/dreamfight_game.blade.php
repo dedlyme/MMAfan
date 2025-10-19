@@ -3,7 +3,7 @@
 @section('title', 'Dream Fight')
 
 @section('content')
-<div class="max-w-5xl mx-auto py-10 px-4 text-center text-gray-900 dark:text-gray-100">
+<div class="max-w-5xl mx-auto py-10 px-4 text-center text-gray-900 dark:text-white dark:bg-[#111]">
 
     {{-- Big Fighter Names --}}
     <div class="flex justify-between items-center mb-10">
@@ -13,14 +13,14 @@
                     {{ $dreamfight->fighterOne->first_name }} {{ $dreamfight->fighterOne->last_name }}
                 </h2>
                 @if($dreamfight->fighterOne->nickname)
-                    <p class="text-xl italic text-gray-400">“{{ $dreamfight->fighterOne->nickname }}”</p>
+                    <p class="text-xl italic text-gray-400 dark:text-white/70">“{{ $dreamfight->fighterOne->nickname }}”</p>
                 @endif
             @else
-                <p class="text-gray-400 text-2xl">Waiting...</p>
+                <p class="text-gray-400 dark:text-white/70 text-2xl">Waiting...</p>
             @endif
         </div>
 
-        <div class="text-5xl font-extrabold text-gray-500">VS</div>
+        <div class="text-5xl font-extrabold text-gray-500 dark:text-white/60">VS</div>
 
         <div class="w-1/2 text-right">
             @if($dreamfight->fighterTwo)
@@ -28,31 +28,31 @@
                     {{ $dreamfight->fighterTwo->first_name }} {{ $dreamfight->fighterTwo->last_name }}
                 </h2>
                 @if($dreamfight->fighterTwo->nickname)
-                    <p class="text-xl italic text-gray-400">“{{ $dreamfight->fighterTwo->nickname }}”</p>
+                    <p class="text-xl italic text-gray-400 dark:text-white/70">“{{ $dreamfight->fighterTwo->nickname }}”</p>
                 @endif
             @else
-                <p class="text-gray-400 text-2xl">Waiting...</p>
+                <p class="text-gray-400 dark:text-white/70 text-2xl">Waiting...</p>
             @endif
         </div>
     </div>
 
     {{-- Fight Stats --}}
-    <p class="text-gray-600 dark:text-gray-400 mb-1">
+    <p class="text-gray-600 dark:text-white/80 mb-1">
         Round {{ $dreamfight->current_round }} / 3
     </p>
 
     <p class="font-semibold mb-6">
         Score:
-        <span class="text-green-600 dark:text-green-400">{{ $dreamfight->player_one_score }}</span>
+        <span class="text-green-600">{{ $dreamfight->player_one_score }}</span>
         -
-        <span class="text-green-600 dark:text-green-400">{{ $dreamfight->player_two_score }}</span>
+        <span class="text-green-600">{{ $dreamfight->player_two_score }}</span>
     </p>
 
     @if($dreamfight->status === 'finished')
-        <h2 class="text-3xl font-bold text-green-600 dark:text-green-400 mb-4">
+        <h2 class="text-3xl font-bold text-green-600 mb-4">
             Winner: {{ $dreamfight->winner }}
         </h2>
-        <p class="text-gray-500 dark:text-gray-400">This window will close in 5 seconds…</p>
+        <p class="text-gray-500 dark:text-white/70">This window will close in 5 seconds…</p>
         <script>setTimeout(()=>window.close(), 5000);</script>
     @else
         @php
@@ -70,45 +70,45 @@
                 <div class="mx-auto mt-6">
                     <svg id="pie" viewBox="0 0 320 320" width="300" height="300" class="mx-auto drop-shadow-xl">
                         <circle cx="160" cy="160" r="154"
-                                class="stroke-gray-300 dark:stroke-gray-600"
+                                class="stroke-gray-300 dark:stroke-white/40"
                                 fill="transparent" stroke-width="4"/>
 
                         <g class="slice" data-choice="wrestling">
                             <path class="slice-path" fill="rgba(0,0,0,.04)"></path>
                             <image class="icon" href="/icons/wrestling.svg" width="40" height="40"/>
-                            <text class="label text-sm font-semibold">Wrestling</text>
+                            <text class="label text-sm font-semibold dark:text-white">Wrestling</text>
                         </g>
 
                         <g class="slice" data-choice="kickbox">
                             <path class="slice-path" fill="rgba(0,0,0,.04)"></path>
                             <image class="icon" href="/icons/kickboxing.svg" width="40" height="40"/>
-                            <text class="label text-sm font-semibold">Kickbox</text>
+                            <text class="label text-sm font-semibold dark:text-white">Kickbox</text>
                         </g>
 
                         <g class="slice" data-choice="jiu-jitsu">
                             <path class="slice-path" fill="rgba(0,0,0,.04)"></path>
                             <image class="icon" href="/icons/jiu-jitsu.svg" width="40" height="40"/>
-                            <text class="label text-sm font-semibold">Jiu-Jitsu</text>
+                            <text class="label text-sm font-semibold dark:text-white">Jiu-Jitsu</text>
                         </g>
 
                         <g id="centerLabelGroup" pointer-events="none">
-                            <circle cx="160" cy="160" r="56" class="fill-gray-200 dark:fill-gray-700"></circle>
+                            <circle cx="160" cy="160" r="56" class="fill-gray-200 dark:fill-white/20"></circle>
                             <text id="centerLabel" x="160" y="160" text-anchor="middle"
                                   dominant-baseline="middle"
-                                  class="font-bold text-base">Choose</text>
+                                  class="font-bold text-base dark:text-white">Choose</text>
                         </g>
                     </svg>
                 </div>
-                <p class="text-gray-500 dark:text-gray-400 mt-4">Click a slice to lock your move.</p>
+                <p class="text-gray-500 dark:text-white/70 mt-4">Click a slice to lock your move.</p>
             </form>
         @else
-            <p class="text-yellow-600 dark:text-yellow-400 mb-4 text-lg font-semibold">
+            <p class="text-yellow-600 mb-4 text-lg font-semibold">
                 You chose: {{ ucfirst($myChoice) }}
             </p>
-            <p class="text-gray-500 dark:text-gray-400">Waiting for the other player…</p>
+            <p class="text-gray-500 dark:text-white/70">Waiting for the other player…</p>
         @endif
 
-        <div class="mt-6 text-sm text-gray-500 dark:text-gray-400">
+        <div class="mt-6 text-sm text-gray-500 dark:text-white/70">
             This page refreshes automatically every 10s.
         </div>
         <script>setInterval(()=>location.reload(), 10000);</script>
@@ -163,13 +163,13 @@
         txt.setAttribute('dominant-baseline', 'middle');
 
         g.style.cursor='pointer';
-        g.addEventListener('mouseenter',()=>p.setAttribute('fill','rgba(0,0,0,.08)'));
+        g.addEventListener('mouseenter',()=>p.setAttribute('fill','rgba(255,255,255,.08)'));
         g.addEventListener('mouseleave',()=>p.setAttribute('fill','rgba(0,0,0,.04)'));
         g.addEventListener('click',()=>{
             document.getElementById('choiceInput').value=conf.choice;
             document.getElementById('centerLabel').textContent =
                 conf.choice.charAt(0).toUpperCase()+conf.choice.slice(1);
-            p.setAttribute('fill','rgba(0,0,0,.12)');
+            p.setAttribute('fill','rgba(255,255,255,.12)');
             setTimeout(()=>document.getElementById('fightChoiceForm').submit(),350);
         });
     });

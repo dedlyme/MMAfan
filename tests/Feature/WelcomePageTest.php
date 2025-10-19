@@ -1,3 +1,7 @@
 <?php
 
-if('route / has "Welcome');
+it('route / has "Welcome" in it', function () {
+    $page = visit('/');
+
+    $page->assertSee('Welcome');
+});

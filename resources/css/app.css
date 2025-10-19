@@ -2,26 +2,57 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Reusable button class */
-.btn {
-  @apply px-5 py-3 rounded-xl font-semibold shadow-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+/* ============================= */
+/* UFC DARK MODE GLOBAL DESIGN   */
+/* ============================= */
+
+@layer base {
+    /* Body fons un teksti */
+    body {
+        @apply bg-lightBg text-black dark:bg-darkBg dark:text-white transition-colors duration-500;
+    }
+
+    /* Teksti – visi virsraksti, rindkopas utt. */
+    h1, h2, h3, h4, h5, h6, p, span, li, a, label, strong {
+        @apply text-black dark:text-white transition-colors duration-500;
+    }
+
+    /* Linki (atstāj primāro sarkano) */
+    a {
+        @apply hover:text-primary dark:hover:text-primary;
+    }
+
+    /* Kastes / kartes / sekcijas */
+    section, article, div.card, .box, .panel, .content-box, .dark-block {
+        @apply bg-white dark:bg-[#111111] dark:text-white transition-colors duration-500;
+    }
+
+    /* Formas & inputs (TUMŠI INPUTI) */
+    input, textarea, select {
+        @apply bg-white text-black dark:bg-[#1a1a1a] dark:text-white dark:border-gray-700 border-gray-300 transition-colors duration-500;
+    }
+
+    input::placeholder, textarea::placeholder {
+        @apply text-gray-500 dark:text-gray-400;
+    }
+
+    /* Pogas */
+    button {
+        @apply transition-colors duration-500;
+    }
+
+    /* Bordi */
+    hr, .border, .divide-gray-200 {
+        @apply dark:border-gray-700;
+    }
 }
 
-/* Primary button */
-.btn-primary {
-  @apply bg-primary text-white hover:bg-red-600;
+/* ============================= */
+/* UFC DARK MODE SVG INVERT      */
+/* ============================= */
+
+.dark .icon {
+    filter: invert(1) brightness(1.2);
+    transition: filter 0.3s ease;
 }
 
-/* Secondary button (gray) */
-.btn-secondary {
-  @apply bg-gray-700 text-white hover:bg-gray-600;
-}
-
-/* Dark mode overrides */
-.dark .btn-primary {
-  @apply bg-red-500 text-white hover:bg-red-400;
-}
-
-.dark .btn-secondary {
-  @apply bg-gray-800 text-white hover:bg-gray-700;
-}

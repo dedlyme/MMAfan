@@ -7,8 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-lightBg text-gray-900 dark:bg-darkBg dark:text-white min-h-screen flex flex-col transition-colors duration-500">
-
+<body class="text-gray-900 dark:text-white min-h-screen flex flex-col transition-colors duration-500">
 
     <header class="relative z-50">
         @include('partials.navbar')
@@ -21,7 +20,6 @@
             @yield('content')
         </div>
     </main>
-
 
     <footer class="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 py-6 mt-auto transition-colors duration-500 relative z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
