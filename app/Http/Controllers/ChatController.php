@@ -9,11 +9,10 @@ use App\Events\MessageSent;
 class ChatController extends Controller
 {
     /**
-     * Dashboard / čata sākumlapa ar ziņām
+     * Dashboard / chat page with last messages
      */
     public function fetch()
     {
-        // Paņemam pēdējās 200 ziņas (svaigākās uz augšu, tad apgriežam)
         $messages = Message::with('user')
             ->latest()
             ->take(200)
@@ -25,25 +24,28 @@ class ChatController extends Controller
     }
 
     /**
-     * Saņem jaunu ziņu no lietotāja (AJAX POST)
+     * Receive new message from user (AJAX POST)
      */
     public function send(Request $request)
     {
-        // Validācija
-        $request->validate([
+        // Validate input length/type
+        $data = $request->validate([
             'message' => 'required|string|max:1000'
         ]);
 
-        // Saglabājam ziņu datubāzē
+        // 🛡 SECURITY: Remove all HTML, CSS, JS (prevents XSS)
+        $cleanMessage = strip_tags($data['message']);
+
+        // Save message to database
         $message = Message::create([
             'user_id' => auth()->id(),
-            'message' => $request->message,
+            'message' => $cleanMessage,
         ]);
 
-        // Izsaucam notikumu (ja vēlāk gribēsi reāllaika atjaunošanu ar Echo/Pusher)
+        // Broadcast real-time event
         event(new MessageSent($message));
 
-        // Atgriežam JSON priekš AJAX
+        // Return message for chat append
         return response()->json($message->load('user'));
     }
 }

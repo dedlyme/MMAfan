@@ -127,9 +127,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.Echo) {
         window.Echo.channel('chat')
             .listen('.MessageSent', (e) => {
+
+                // 🛡 SAFE: No innerHTML (prevents injection)
                 const div = document.createElement('div');
                 div.className = "px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words";
-                div.innerHTML = `<span class='font-semibold text-red-600 dark:text-red-400'>${e.user.name}:</span> ${e.message}`;
+
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'font-semibold text-red-600 dark:text-red-400';
+                nameSpan.textContent = `${e.user.name}: `;
+
+                const msgSpan = document.createElement('span');
+                msgSpan.textContent = e.message; // Pure text only
+
+                div.appendChild(nameSpan);
+                div.appendChild(msgSpan);
                 messages.appendChild(div);
                 scrollBottom();
             });
