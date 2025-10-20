@@ -3,21 +3,22 @@
 @section('title', 'UFC Divisions')
 
 @section('content')
-<div class="max-w-7xl mx-auto py-8 px-4 space-y-8">
+<div class="max-w-7xl mx-auto py-8 px-4 space-y-8 text-gray-900 dark:text-white">
 
-    <h1 class="text-4xl font-extrabold text-gray-900 text-center">
+    <h1 class="text-4xl font-extrabold text-center">
         UFC Divisions
     </h1>
 
     {{-- ===== Add New Division (Admin Only) ===== --}}
     @if(auth()->check() && auth()->user()->is_admin)
-        <div class="bg-white rounded-2xl shadow-md p-6">
+        <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
             <form action="{{ route('admin.divisions.store') }}" method="POST" class="flex flex-col sm:flex-row gap-3">
                 @csrf
                 <div class="flex-1">
                     <input type="text" name="name" placeholder="New Division"
-                           class="w-full p-3 rounded-lg border @error('name') border-red-500 @else border-gray-300 @enderror
-                                  bg-gray-50 text-gray-900 focus:ring-2 focus:ring-yellow-400 transition" required>
+                           class="w-full p-3 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white 
+                           border @error('name') border-red-500 @else border-gray-300 dark:border-gray-700 @enderror
+                           focus:ring-2 focus:ring-yellow-400 transition" required>
                     @error('name')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -50,13 +51,13 @@
     {{-- ===== DIVISIONS GRID ===== --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         @foreach($divisions as $division)
-            <div class="bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden transition hover:shadow-xl">
+            <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden transition hover:shadow-xl">
 
                 {{-- Header --}}
-                <div class="flex justify-between items-center p-5 bg-gray-100">
+                <div class="flex justify-between items-center p-5 bg-gray-100 dark:bg-gray-800">
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-900">{{ $division->name }}</h2>
-                        <span class="text-gray-500 text-sm">
+                        <h2 class="text-2xl font-bold">{{ $division->name }}</h2>
+                        <span class="text-gray-500 dark:text-gray-400 text-sm">
                             {{ $division->rankings->count() }} fighters
                         </span>
                     </div>
@@ -74,8 +75,8 @@
                         $sorted = $division->rankings->sortBy(fn($f) => $f->is_champion ? 0 : $f->rank);
                     @endphp
                     @forelse($sorted as $fighter)
-                        <div class="p-3 bg-gray-50 rounded-lg flex items-center justify-between hover:bg-gray-100 transition">
-                            <span class="text-gray-900 font-medium">
+                        <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                            <span class="font-medium">
                                 {{ $fighter->is_champion ? 'C' : $fighter->rank }}. {{ $fighter->fighter_name }}
                             </span>
                             @if($fighter->is_champion)
@@ -83,15 +84,15 @@
                             @endif
                         </div>
                     @empty
-                        <p class="text-gray-500 italic">No fighters yet.</p>
+                        <p class="text-gray-500 dark:text-gray-400 italic">No fighters yet.</p>
                     @endforelse
                 </div>
 
                 {{-- ===== Admin Edit Section ===== --}}
                 @if(auth()->check() && auth()->user()->is_admin)
-                    <div id="edit-division-{{ $division->id }}" class="hidden p-5 bg-gray-50 border-t border-gray-200">
+                    <div id="edit-division-{{ $division->id }}" class="hidden p-5 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
 
-                        {{-- Hidden delete forms (triggered by buttons below) --}}
+                        {{-- Hidden delete forms --}}
                         @foreach($division->rankings as $fighter)
                             <form id="del-{{ $fighter->id }}" action="{{ route('ranking.destroy',$fighter) }}" method="POST" class="hidden">
                                 @csrf
@@ -105,17 +106,17 @@
 
                             {{-- Division Name --}}
                             <div>
-                                <label class="block text-sm text-gray-700 mb-1">Division Name</label>
+                                <label class="block text-sm text-gray-700 dark:text-gray-300 mb-1">Division Name</label>
                                 <input type="text" name="name" value="{{ old('name', $division->name) }}"
-                                       class="w-full p-2 rounded bg-gray-50 text-gray-900 border @error('name') border-red-500 @else border-gray-300 @enderror">
+                                       class="w-full p-2 rounded bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600">
                             </div>
 
                             {{-- Fighters --}}
-                            <h3 class="text-lg font-bold text-gray-900 mb-2">Fighters</h3>
+                            <h3 class="text-lg font-bold">Fighters</h3>
                             @foreach($division->rankings as $fighter)
-                                <div class="relative bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition">
+                                <div class="relative bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm hover:shadow-md transition">
 
-                                    {{-- Delete button (top-right) --}}
+                                    {{-- Delete button --}}
                                     <button type="button"
                                             onclick="if(confirm('Delete this fighter?')) document.getElementById('del-{{ $fighter->id }}').submit();"
                                             class="absolute top-2 right-2 bg-red-600 hover:bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs shadow">
@@ -124,10 +125,10 @@
 
                                     <div class="space-y-2">
                                         <input type="text" name="fighters[{{ $fighter->id }}][fighter_name]" value="{{ $fighter->fighter_name }}"
-                                               class="w-full p-2 rounded-lg bg-gray-50 text-gray-900 border border-gray-300">
+                                               class="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600">
                                         <input type="number" name="fighters[{{ $fighter->id }}][rank]" value="{{ $fighter->rank }}" min="1" max="999"
-                                               class="w-full p-2 rounded-lg bg-gray-50 text-gray-900 border border-gray-300">
-                                        <label class="flex items-center space-x-2 text-gray-700">
+                                               class="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600">
+                                        <label class="flex items-center space-x-2">
                                             <input type="checkbox"
                                                    name="fighters[{{ $fighter->id }}][is_champion]"
                                                    value="1"
@@ -140,18 +141,17 @@
                             @endforeach
 
                             {{-- Add new fighter --}}
-                            <div class="bg-white rounded-xl p-4 shadow-sm">
-                                <h4 class="text-sm font-semibold text-gray-700 mb-2">Add New Fighter</h4>
+                            <div class="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm">
+                                <h4 class="text-sm font-semibold mb-2">Add New Fighter</h4>
                                 <div class="space-y-2">
                                     <input type="text" name="new_fighter[fighter_name]" placeholder="New Fighter Name"
-                                           class="w-full p-2 rounded-lg bg-gray-50 text-gray-900 border border-gray-300">
+                                           class="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600">
                                     <input type="number" name="new_fighter[rank]" placeholder="Rank" min="1" max="999"
-                                           class="w-full p-2 rounded-lg bg-gray-50 text-gray-900 border border-gray-300">
-                                    <label class="flex items-center space-x-2 text-gray-700">
+                                           class="w-full p-2 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600">
+                                    <label class="flex items-center space-x-2">
                                         <input type="checkbox" name="new_fighter[is_champion]" value="1" class="champion-checkbox accent-yellow-400">
                                         <span>Champion</span>
                                     </label>
-                                    <p class="text-xs text-gray-500">⚠️ Max 16 fighters per division.</p>
                                 </div>
                             </div>
 
@@ -179,7 +179,7 @@
 
 </div>
 
-{{-- ===== JS: Only one champion checkbox per division (front-end assist) ===== --}}
+{{-- ===== JS: Champion checkbox logic ===== --}}
 <script>
 document.querySelectorAll('.division-form').forEach(form => {
     const checkboxes = form.querySelectorAll('.champion-checkbox');
