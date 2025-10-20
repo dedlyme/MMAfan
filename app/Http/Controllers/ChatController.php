@@ -21,7 +21,10 @@ class ChatController extends Controller
             ->reverse()
             ->values();
 
-        return view('dashboard', compact('messages'));
+        // Force disable cache to bypass old HTML from Cloudflare or browser
+        return response()
+            ->nocache()
+            ->view('dashboard', compact('messages'));
     }
 
     /**
