@@ -12,21 +12,11 @@ class UsersTableSeeder extends Seeder
     {
         // Admin
         User::updateOrCreate(
-            ['email' => 'admin@ufc.test'],
+            ['email' => 'ipb22.k.vasarajs@vtdt.edu.lv'],
             [
                 'name'     => 'admin',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('kristaps123'),
                 'is_admin' => true,
-            ]
-        );
-
-        // Regular user
-        User::updateOrCreate(
-            ['email' => 'user@ufc.test'],
-            [
-                'name'     => 'Kristaps Vasarajs',
-                'password' => Hash::make('password'),
-                'is_admin' => false,
             ]
         );
     }

@@ -67,35 +67,35 @@
                 @csrf
                 <input type="hidden" name="choice" id="choiceInput">
 
-                <div class="mx-auto mt-6">
+                <div class="mx-auto mt-6 text-gray-900 dark:text-white">
                     <svg id="pie" viewBox="0 0 320 320" width="300" height="300" class="mx-auto drop-shadow-xl">
                         <circle cx="160" cy="160" r="154"
                                 class="stroke-gray-300 dark:stroke-white/40"
                                 fill="transparent" stroke-width="4"/>
 
-                        <g class="slice" data-choice="wrestling">
+                        <g class="slice" data-choice="wrestling" class="text-gray-900 dark:text-white">
                             <path class="slice-path" fill="rgba(0,0,0,.04)"></path>
                             <image class="icon" href="/icons/wrestling.svg" width="40" height="40"/>
-                            <text class="label text-sm font-semibold dark:text-white">Wrestling</text>
+                            <text fill="currentColor" class="label text-sm font-semibold text-gray-900 dark:text-white">Wrestling</text>
                         </g>
 
-                        <g class="slice" data-choice="kickbox">
+                        <g class="slice" data-choice="kickbox" class="text-gray-900 dark:text-white">
                             <path class="slice-path" fill="rgba(0,0,0,.04)"></path>
                             <image class="icon" href="/icons/kickboxing.svg" width="40" height="40"/>
-                            <text class="label text-sm font-semibold dark:text-white">Kickbox</text>
+                            <text fill="currentColor" class="label text-sm font-semibold text-gray-900 dark:text-white">Kickbox</text>
                         </g>
 
-                        <g class="slice" data-choice="jiu-jitsu">
+                        <g class="slice" data-choice="jiu-jitsu" class="text-gray-900 dark:text-white">
                             <path class="slice-path" fill="rgba(0,0,0,.04)"></path>
                             <image class="icon" href="/icons/jiu-jitsu.svg" width="40" height="40"/>
-                            <text class="label text-sm font-semibold dark:text-white">Jiu-Jitsu</text>
+                            <text fill="currentColor" class="label text-sm font-semibold text-gray-900 dark:text-white">Jiu-Jitsu</text>
                         </g>
 
                         <g id="centerLabelGroup" pointer-events="none">
                             <circle cx="160" cy="160" r="56" class="fill-gray-200 dark:fill-white/20"></circle>
-                            <text id="centerLabel" x="160" y="160" text-anchor="middle"
+                            <text fill="currentColor" id="centerLabel" x="160" y="160" text-anchor="middle"
                                   dominant-baseline="middle"
-                                  class="font-bold text-base dark:text-white">Choose</text>
+                                  class="font-bold text-base text-gray-900 dark:text-white">Choose</text>
                         </g>
                     </svg>
                 </div>
