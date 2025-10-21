@@ -17,7 +17,6 @@ class ChatController extends Controller
      */
     public function fetch()
     {
-        // Fetch last 200 messages (newest first, then reverse)
         $messages = Message::with('user')
             ->latest()
             ->take(200)
@@ -35,7 +34,7 @@ class ChatController extends Controller
     {
         $userId = Auth::id();
 
-        // ✅ Anti-spam: only allow one message every 5 seconds per user
+        // ✅ Anti-spam: 1 message every 5 seconds
         $cooldownKey = "chat_cooldown_{$userId}";
         if (Cache::has($cooldownKey)) {
             return response()->json([
@@ -43,35 +42,35 @@ class ChatController extends Controller
             ], 429);
         }
 
-        // ✅ Validate input
+        // ✅ Validation (relaxed regex, but still safe)
         $validated = $request->validate([
             'message' => [
                 'required',
                 'string',
                 'max:300',
-                'regex:/^[^<>]*$/',              // disallow HTML tags
-                'not_regex:/(https?:\/\/|www\.)/i', // disallow URLs
+                // Disallow only dangerous characters, but allow normal punctuation
+                'not_regex:/(https?:\/\/|www\.)/i', // block links
             ],
         ], [
             'message.not_regex' => 'Links are not allowed in chat.',
-            'message.regex' => 'HTML tags are not allowed.',
         ]);
 
-        // ✅ Sanitize input deeply
+        // ✅ Sanitize input
         $config = HTMLPurifier_Config::createDefault();
         $purifier = new HTMLPurifier($config);
-        $safeMessage = $purifier->purify(strip_tags($validated['message']));
+        $clean = strip_tags($validated['message']);
+        $safeMessage = $purifier->purify($clean);
 
-        // ✅ Create message
+        // ✅ Store safe message
         $message = Message::create([
             'user_id' => $userId,
             'message' => $safeMessage,
         ]);
 
-        // ✅ Start cooldown (5 seconds)
+        // ✅ Start 5-second cooldown
         Cache::put($cooldownKey, true, now()->addSeconds(5));
 
-        // ✅ Broadcast for realtime
+        // ✅ Broadcast event
         event(new MessageSent($message));
 
         return response()->json($message->load('user'));
