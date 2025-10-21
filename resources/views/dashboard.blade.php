@@ -101,6 +101,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('chat-input');
     const messages = document.getElementById('messages');
 
+    // ✅ Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
     function scrollBottom() {
         messages.scrollTo({ top: messages.scrollHeight, behavior: 'smooth' });
     }
@@ -110,26 +117,37 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const text = input.value.trim();
         if (!text) return;
+
         input.value = '';
         input.focus();
 
-        await fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ message: text })
-        });
+        try {
+            const response = await fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: text })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                alert(error.error || 'Error sending message.');
+            }
+        } catch (err) {
+            alert('Connection error, please try again.');
+        }
     });
 
+    // ✅ Listen for real-time events securely
     if (window.Echo) {
         window.Echo.channel('chat')
             .listen('.MessageSent', (e) => {
                 const div = document.createElement('div');
                 div.className = "px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words";
-                div.innerHTML = `<span class='font-semibold text-red-600 dark:text-red-400'>${e.user.name}:</span> ${e.message}`;
+                div.innerHTML = `<span class='font-semibold text-red-600 dark:text-red-400'>${escapeHtml(e.user.name)}:</span> ${escapeHtml(e.message)}`;
                 messages.appendChild(div);
                 scrollBottom();
             });
