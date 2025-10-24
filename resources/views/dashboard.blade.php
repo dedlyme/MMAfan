@@ -11,7 +11,6 @@
 
 @section('content')
 
-{{-- ===== HERO SECTION ===== --}}
 <section class="text-center pt-16 sm:pt-20 px-4 sm:px-6 bg-transparent">
     <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg tracking-tight leading-tight">
         UFC MMA Dashboard
@@ -21,7 +20,6 @@
     </p>
 </section>
 
-{{-- ===== USER STATS ===== --}}
 @php
     $user = auth()->user();
     $wins = \App\Models\Dreamfight::where('winner', $user?->name)->count();
@@ -57,7 +55,6 @@
     </div>
 </section>
 
-{{-- ===== LIVE CHAT SECTION ===== --}}
 <section class="bg-white/90 dark:bg-gray-900/90 rounded-3xl shadow-2xl border border-gray-200/30 dark:border-gray-700/40 p-4 sm:p-6 lg:p-8 mb-16 mx-3 sm:mx-8">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
         <h2 class="text-2xl sm:text-3xl font-extrabold text-red-500">Live Chat</h2>
@@ -70,13 +67,9 @@
     <div id="chat" class="flex flex-col h-[70vh] sm:h-96 rounded-2xl bg-gray-50 dark:bg-gray-800 overflow-hidden">
         <div id="messages" class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 scroll-smooth">
             @foreach($messages as $msg)
-                <div class="px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words relative"
-                     id="msg-{{ $msg->id }}">
-                    <span class="font-semibold text-red-600 dark:text-red-400">
-                        {{ $msg->user->name ?? 'Unknown User' }}:
-                    </span>
+                <div class="px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words relative" id="msg-{{ $msg->id }}">
+                    <span class="font-semibold text-red-600 dark:text-red-400">{{ $msg->user->name ?? 'Unknown User' }}:</span>
                     <span>{{ $msg->message }}</span>
-
                     @if(auth()->user()?->is_admin)
                         <button type="button"
                             class="absolute top-2 right-3 text-gray-500 hover:text-red-600 delete-btn"
@@ -110,8 +103,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('chat-form');
     const input = document.getElementById('chat-input');
     const messages = document.getElementById('messages');
+    const isAdmin = @json(auth()->user()?->is_admin);
 
-    // === Escape HTML (XSS protection) ===
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -121,9 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function scrollBottom() {
         messages.scrollTo({ top: messages.scrollHeight, behavior: 'smooth' });
     }
-    scrollBottom();
 
-    // === Send message ===
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = input.value.trim();
@@ -141,18 +132,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({ message: text })
             });
-
             const data = await response.json();
-            if (!response.ok) {
-                alert(data.error || 'Error sending message.');
-            }
+            if (!response.ok) alert(data.error || 'Error sending message.');
         } catch (err) {
-            console.error('Send error', err);
-            alert('Connection error, please try again.');
+            console.error(err);
+            alert('Connection error.');
         }
     });
 
-    // === Delete for Admin ===
     document.addEventListener('click', async (e) => {
         if (!e.target.classList.contains('delete-btn')) return;
         const id = e.target.dataset.id;
@@ -170,26 +157,24 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.ok && data.success) {
                 const el = document.getElementById(`msg-${id}`);
                 if (el) el.remove();
-            } else {
-                alert(data.error || 'Error deleting message.');
-            }
+            } else alert(data.error || 'Error deleting message.');
         } catch (err) {
             console.error(err);
             alert('Network error.');
         }
     });
 
-    // === Live updates from Pusher ===
     if (window.Echo) {
-        console.log('✅ Echo connected successfully');
-
         window.Echo.channel('chat')
             .listen('.message.sent', (e) => {
-                console.log('📩 Message received:', e);
                 const div = document.createElement('div');
-                div.className = "px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words";
+                div.className = "px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words relative";
                 div.id = 'msg-' + e.id;
-                div.innerHTML = `<span class='font-semibold text-red-600 dark:text-red-400'>${escapeHtml(e.user.name)}:</span> ${escapeHtml(e.message)}`;
+                div.innerHTML = `
+                    <span class='font-semibold text-red-600 dark:text-red-400'>${escapeHtml(e.user.name)}:</span>
+                    ${escapeHtml(e.message)}
+                    ${isAdmin ? `<button type="button" class="absolute top-2 right-3 text-gray-500 hover:text-red-600 delete-btn" data-id="${e.id}" title="Delete message">🗑️</button>` : ''}
+                `;
                 messages.appendChild(div);
                 scrollBottom();
             })
@@ -197,8 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 const el = document.getElementById('msg-' + e.id);
                 if (el) el.remove();
             });
-    } else {
-        console.error('❌ Echo not initialized – check bootstrap.js or vite build.');
     }
 });
 </script>
