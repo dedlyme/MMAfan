@@ -10,23 +10,24 @@ class PoundSeeder extends Seeder
 {
     public function run(): void
     {
+        // ✅ Current UFC Pound-for-Pound Top 10
         $top10 = [
-            1  => 'Islam Makhachev',
-            2  => 'Alex Pereira',
-            3  => 'Ilia Topuria',
-            4  => 'Leon Edwards',
-            5  => 'Tom Aspinall',
-            6  => 'Sean O\'Malley',
-            7  => 'Max Holloway',
-            8  => 'Dricus du Plessis',
-            9  => 'Weili Zhang',
-            10 => 'Alexandre Pantoja',
+            1  => 'Ilia Topuria',
+            2  => 'Islam Makhachev',
+            3  => 'Merab Dvalishvili',
+            4  => 'Khamzat Chimaev',
+            5  => 'Alexandre Pantoja',
+            6  => 'Alex Pereira',
+            7  => 'Alexander Volkanovski',
+            8  => 'Jack Della Maddalena',
+            9  => 'Tom Aspinall',
+            10 => 'Dricus Du Plessis',
         ];
 
         DB::transaction(function () use ($top10) {
             foreach ($top10 as $rank => $name) {
                 PoundFighter::updateOrCreate(
-                    ['rank' => $rank],           // keep rank unique
+                    ['rank' => $rank],            // ensure rank stays unique
                     ['fighter_name' => $name]
                 );
             }
