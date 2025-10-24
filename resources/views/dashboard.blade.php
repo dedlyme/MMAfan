@@ -11,7 +11,7 @@
 
 @section('content')
 
-{{-- ===== HERO ===== --}}
+{{-- ===== HERO SECTION ===== --}}
 <section class="text-center pt-16 sm:pt-20 px-4 sm:px-6 bg-transparent">
     <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg tracking-tight leading-tight">
         UFC MMA Dashboard
@@ -21,7 +21,7 @@
     </p>
 </section>
 
-{{-- ===== QUICK STATS ===== --}}
+{{-- ===== USER STATS ===== --}}
 @php
     $user = auth()->user();
     $wins = \App\Models\Dreamfight::where('winner', $user?->name)->count();
@@ -57,7 +57,7 @@
     </div>
 </section>
 
-{{-- ===== LIVE CHAT ===== --}}
+{{-- ===== LIVE CHAT SECTION ===== --}}
 <section class="bg-white/90 dark:bg-gray-900/90 rounded-3xl shadow-2xl border border-gray-200/30 dark:border-gray-700/40 p-4 sm:p-6 lg:p-8 mb-16 mx-3 sm:mx-8">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
         <h2 class="text-2xl sm:text-3xl font-extrabold text-red-500">Live Chat</h2>
@@ -111,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('chat-input');
     const messages = document.getElementById('messages');
 
+    // === Escape HTML (XSS protection) ===
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -122,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     scrollBottom();
 
-    // ✅ Send message
+    // === Send message ===
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = input.value.trim();
@@ -141,16 +142,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: JSON.stringify({ message: text })
             });
 
+            const data = await response.json();
             if (!response.ok) {
-                const error = await response.json();
-                alert(error.error || 'Error sending message.');
+                alert(data.error || 'Error sending message.');
             }
         } catch (err) {
+            console.error('Send error', err);
             alert('Connection error, please try again.');
         }
     });
 
-    // ✅ Admin delete
+    // === Delete for Admin ===
     document.addEventListener('click', async (e) => {
         if (!e.target.classList.contains('delete-btn')) return;
         const id = e.target.dataset.id;
@@ -177,12 +179,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ✅ Live Pusher updates
+    // === Live updates from Pusher ===
     if (window.Echo) {
-        console.log('Echo connected:', window.Echo);
+        console.log('✅ Echo connected successfully');
+
         window.Echo.channel('chat')
             .listen('.message.sent', (e) => {
-                console.log('New message received:', e);
+                console.log('📩 Message received:', e);
                 const div = document.createElement('div');
                 div.className = "px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words";
                 div.id = 'msg-' + e.id;
@@ -195,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (el) el.remove();
             });
     } else {
-        console.error('Echo is not defined – check bootstrap.js or npm run build.');
+        console.error('❌ Echo not initialized – check bootstrap.js or vite build.');
     }
 });
 </script>

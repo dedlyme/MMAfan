@@ -3,25 +3,18 @@
 namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSent implements ShouldBroadcast
+class MessageSent implements ShouldBroadcastNow
 {
     use Dispatchable, SerializesModels;
 
-    public $message; // the message model (or array)
+    public $message;
 
-    /**
-     * Create a new event instance.
-     *
-     * @param  mixed  $message
-     * @return void
-     */
     public function __construct($message)
     {
-        // Make sure the payload is serializable and small
         $this->message = [
             'id' => $message->id,
             'user' => [
@@ -29,18 +22,15 @@ class MessageSent implements ShouldBroadcast
                 'name' => $message->user->name,
             ],
             'message' => $message->message,
-            'created_at' => $message->created_at ? $message->created_at->toDateTimeString() : now()->toDateTimeString()
+            'created_at' => $message->created_at
+                ? $message->created_at->toDateTimeString()
+                : now()->toDateTimeString(),
         ];
     }
 
-    /**
-     * The channel the event should broadcast on.
-     *
-     * @return Channel|array
-     */
     public function broadcastOn()
     {
-        return new Channel('chat'); // public channel 'chat'
+        return new Channel('chat');
     }
 
     public function broadcastWith()
