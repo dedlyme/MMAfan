@@ -11,7 +11,7 @@
 
 @section('content')
 
-{{-- ===== HERO / NO BACKGROUND BOX ===== --}}
+{{-- ===== HERO ===== --}}
 <section class="text-center pt-16 sm:pt-20 px-4 sm:px-6 bg-transparent">
     <h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg tracking-tight leading-tight">
         UFC MMA Dashboard
@@ -21,11 +21,7 @@
     </p>
 </section>
 
-<div>
-    <p>Vasilijs smird</p>
-</div>
-
-{{-- ===== QUICK STATS (FLOATING CARDS) ===== --}}
+{{-- ===== QUICK STATS ===== --}}
 @php
     $user = auth()->user();
     $wins = \App\Models\Dreamfight::where('winner', $user?->name)->count();
@@ -65,7 +61,7 @@
 <section class="bg-white/90 dark:bg-gray-900/90 rounded-3xl shadow-2xl border border-gray-200/30 dark:border-gray-700/40 p-4 sm:p-6 lg:p-8 mb-16 mx-3 sm:mx-8">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
         <h2 class="text-2xl sm:text-3xl font-extrabold text-red-500">Live Chat</h2>
-        <button onclick="document.documentElement.classList.toggle('dark')"
+        <button onclick="window.toggleTheme()"
             class="px-3 sm:px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition">
             Toggle Dark / Light
         </button>
@@ -126,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     scrollBottom();
 
-    // Send message
+    // ✅ Send message
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = input.value.trim();
@@ -154,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Admin delete handler
+    // ✅ Admin delete
     document.addEventListener('click', async (e) => {
         if (!e.target.classList.contains('delete-btn')) return;
         const id = e.target.dataset.id;
@@ -181,10 +177,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Listen for real-time events
+    // ✅ Live Pusher updates
     if (window.Echo) {
+        console.log('Echo connected:', window.Echo);
         window.Echo.channel('chat')
             .listen('.message.sent', (e) => {
+                console.log('New message received:', e);
                 const div = document.createElement('div');
                 div.className = "px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words";
                 div.id = 'msg-' + e.id;
@@ -196,6 +194,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const el = document.getElementById('msg-' + e.id);
                 if (el) el.remove();
             });
+    } else {
+        console.error('Echo is not defined – check bootstrap.js or npm run build.');
     }
 });
 </script>
