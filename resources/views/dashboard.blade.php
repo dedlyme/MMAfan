@@ -21,6 +21,10 @@
     </p>
 </section>
 
+<div>
+    <p>Vasilijs smird</p>
+</div>
+
 {{-- ===== QUICK STATS (FLOATING CARDS) ===== --}}
 @php
     $user = auth()->user();
@@ -70,16 +74,26 @@
     <div id="chat" class="flex flex-col h-[70vh] sm:h-96 rounded-2xl bg-gray-50 dark:bg-gray-800 overflow-hidden">
         <div id="messages" class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 scroll-smooth">
             @foreach($messages as $msg)
-                <div class="px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words">
+                <div class="px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words relative"
+                     id="msg-{{ $msg->id }}">
                     <span class="font-semibold text-red-600 dark:text-red-400">
                         {{ $msg->user->name ?? 'Unknown User' }}:
                     </span>
                     <span>{{ $msg->message }}</span>
+
+                    @if(auth()->user()?->is_admin)
+                        <button type="button"
+                            class="absolute top-2 right-3 text-gray-500 hover:text-red-600 delete-btn"
+                            data-id="{{ $msg->id }}"
+                            title="Delete message">
+                            🗑️
+                        </button>
+                    @endif
                 </div>
             @endforeach
         </div>
 
-        <form id="chat-form" action="{{ route('messages.send') }}" method="POST"
+        <form id="chat-form" action="{{ route('chat.send') }}" method="POST"
             class="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 p-3 border-t border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900">
             @csrf
             <input id="chat-input" type="text" name="message" placeholder="Type a message..."
@@ -101,7 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('chat-input');
     const messages = document.getElementById('messages');
 
-    // ✅ Escape HTML to prevent XSS
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
@@ -113,11 +126,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     scrollBottom();
 
+    // Send message
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = input.value.trim();
         if (!text) return;
-
         input.value = '';
         input.focus();
 
@@ -141,15 +154,47 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ✅ Listen for real-time events securely
+    // Admin delete handler
+    document.addEventListener('click', async (e) => {
+        if (!e.target.classList.contains('delete-btn')) return;
+        const id = e.target.dataset.id;
+        if (!confirm('Delete this message?')) return;
+
+        try {
+            const res = await fetch(`/chat/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                const el = document.getElementById(`msg-${id}`);
+                if (el) el.remove();
+            } else {
+                alert(data.error || 'Error deleting message.');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Network error.');
+        }
+    });
+
+    // Listen for real-time events
     if (window.Echo) {
         window.Echo.channel('chat')
-            .listen('.MessageSent', (e) => {
+            .listen('.message.sent', (e) => {
                 const div = document.createElement('div');
                 div.className = "px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words";
+                div.id = 'msg-' + e.id;
                 div.innerHTML = `<span class='font-semibold text-red-600 dark:text-red-400'>${escapeHtml(e.user.name)}:</span> ${escapeHtml(e.message)}`;
                 messages.appendChild(div);
                 scrollBottom();
+            })
+            .listen('.message.deleted', (e) => {
+                const el = document.getElementById('msg-' + e.id);
+                if (el) el.remove();
             });
     }
 });

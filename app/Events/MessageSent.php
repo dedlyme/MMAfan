@@ -1,44 +1,55 @@
 <?php
+
 namespace App\Events;
 
-use App\Models\Message;
 use Illuminate\Broadcasting\Channel;
-use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class MessageSent implements ShouldBroadcastNow
+class MessageSent implements ShouldBroadcast
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable, SerializesModels;
 
-    public $message;
+    public $message; // the message model (or array)
 
-    public function __construct(Message $message)
+    /**
+     * Create a new event instance.
+     *
+     * @param  mixed  $message
+     * @return void
+     */
+    public function __construct($message)
     {
-        $this->message = $message->load('user');
+        // Make sure the payload is serializable and small
+        $this->message = [
+            'id' => $message->id,
+            'user' => [
+                'id' => $message->user->id,
+                'name' => $message->user->name,
+            ],
+            'message' => $message->message,
+            'created_at' => $message->created_at ? $message->created_at->toDateTimeString() : now()->toDateTimeString()
+        ];
     }
 
+    /**
+     * The channel the event should broadcast on.
+     *
+     * @return Channel|array
+     */
     public function broadcastOn()
     {
-        return new Channel('chat'); // must match frontend Echo.channel('chat')
-    }
-
-    public function broadcastAs()
-    {
-        return 'MessageSent'; // matches frontend listen('.MessageSent')
+        return new Channel('chat'); // public channel 'chat'
     }
 
     public function broadcastWith()
     {
-        return [
-            'id' => $this->message->id,
-            'user' => [
-                'id' => $this->message->user->id,
-                'name' => $this->message->user->name,
-            ],
-            'message' => $this->message->message,
-            'created_at' => $this->message->created_at->toDateTimeString(),
-        ];
+        return $this->message;
+    }
+
+    public function broadcastAs()
+    {
+        return 'message.sent';
     }
 }

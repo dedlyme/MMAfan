@@ -20,7 +20,7 @@ function loginBrowser()
          ->press('Log in');
 
     return $page;
-}
+};
 
 it('logs in and visits dashboard', function () {
     $page = loginBrowser();

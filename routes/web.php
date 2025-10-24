@@ -35,6 +35,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [ChatController::class, 'fetch'])->name('dashboard');
+    Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
+    Route::delete('/chat/{message}', [ChatController::class, 'destroy'])->name('chat.destroy');
+});
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Rankings (Public View + CRUD)

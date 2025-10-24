@@ -13,7 +13,6 @@ class NewsController extends Controller
         $feedUrls = [
             'https://www.ufc.com/rss.xml',
             'https://www.espn.com/espn/rss/mma/news',
-            'https://www.mmafighting.com/rss/current',
             'https://www.sherdog.com/rss/news.xml',
         ];
 
