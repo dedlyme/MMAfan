@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Carbon\CarbonInterface;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -21,9 +21,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'is_admin', // pievienojam admin lauku
+        'is_admin',
+        'chat_muted_until',
+        'chat_mute_reason',
     ];
-    
 
     /**
      * The attributes that should be hidden for serialization.
@@ -45,6 +46,14 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
+            'chat_muted_until' => 'datetime',
         ];
+    }
+
+    public function isChatMuted(): bool
+    {
+        return $this->chat_muted_until instanceof CarbonInterface
+            && $this->chat_muted_until->isFuture();
     }
 }

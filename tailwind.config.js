@@ -10,7 +10,7 @@ export default {
         './resources/js/**/*.js',
     ],
 
-    // 🌙 Dark mode toggled with "dark" class on <html> or <body>
+    //  Dark mode toggled with "dark" class on <html> or <body>
     darkMode: 'class',
 
     theme: {

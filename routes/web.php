@@ -13,8 +13,8 @@ use App\Http\Controllers\PoundController;
 use App\Http\Controllers\Admin\PoundAdminController;
 use App\Http\Controllers\Admin\AdminRankingController;
 use App\Http\Controllers\Admin\DivisionController;
+use App\Http\Controllers\Admin\ChatModerationController;
 use App\Http\Controllers\DreamfightController;
-
 
 Route::get('/', fn() => view('welcome'));
 
@@ -32,7 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/ranking/{ranking}', [RankingController::class, 'destroy'])->name('ranking.destroy');
     Route::patch('/admin/divisions/{division}/rankings/order', [RankingController::class, 'updateOrder'])->name('admin.rankings.updateOrder');
 
-    // Admin – Pound, Divisions
+    // Admin
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/pound', [PoundAdminController::class, 'index'])->name('pound.index');
         Route::post('/pound', [PoundAdminController::class, 'store'])->name('pound.store');
@@ -48,20 +48,36 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::post('/divisions', function (Request $request) {
             abort_unless(auth()->user()?->is_admin, 403);
-            $request->validate(['name' => 'required|string|max:255|unique:divisions,name']);
+            $request->validate([
+                'name' => 'required|string|max:255|unique:divisions,name'
+            ]);
+
             Division::create(['name' => $request->name]);
-            return redirect()->route('admin.divisions.index')->with('success', 'Division created.');
+
+            return redirect()
+                ->route('admin.divisions.index')
+                ->with('success', 'Division created.');
         })->name('divisions.store');
 
         Route::patch('/divisions/{division}', [DivisionController::class, 'update'])->name('divisions.update');
+
         Route::delete('/divisions/{division}', function (Division $division) {
             abort_unless(auth()->user()?->is_admin, 403);
+
             $division->delete();
-            return redirect()->route('admin.divisions.index')->with('success', 'Division deleted.');
+
+            return redirect()
+                ->route('admin.divisions.index')
+                ->with('success', 'Division deleted.');
         })->name('divisions.destroy');
 
         Route::post('/divisions/{division}/rankings', [AdminRankingController::class, 'store'])->name('rankings.store');
         Route::delete('/rankings/{ranking}', [AdminRankingController::class, 'destroy'])->name('fighters.destroy');
+
+        // Admin chat moderation
+        Route::get('/chat-moderation', [ChatModerationController::class, 'index'])->name('chat-moderation.index');
+        Route::post('/chat-moderation/{user}/mute', [ChatModerationController::class, 'mute'])->name('chat-moderation.mute');
+        Route::post('/chat-moderation/{user}/unmute', [ChatModerationController::class, 'unmute'])->name('chat-moderation.unmute');
     });
 
     // News

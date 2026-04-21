@@ -29,6 +29,8 @@
     $draws = \App\Models\Dreamfight::where(function($q) use ($user) {
         $q->where('player_one_id', $user?->id)->orWhere('player_two_id', $user?->id);
     })->whereNull('winner')->count();
+
+    $isMuted = $user?->isChatMuted();
 @endphp
 
 <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 pb-10 sm:pb-16 px-4 sm:px-8 bg-transparent">
@@ -37,6 +39,7 @@
         <h2 class="text-base sm:text-lg font-semibold text-gray-700 dark:text-gray-200">Active User</h2>
         <p class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mt-2">{{ $user?->name }}</p>
     </div>
+
     <div class="bg-white/90 dark:bg-gray-800/90 rounded-3xl shadow-xl p-6 sm:p-8 text-center">
         <div class="text-red-500 text-4xl sm:text-5xl mb-3">🥊</div>
         <h2 class="text-base sm:text-lg font-semibold text-gray-700 dark:text-gray-200">Your Record</h2>
@@ -46,6 +49,7 @@
             <span class="text-gray-500 dark:text-gray-300">{{ $draws }}D</span>
         </p>
     </div>
+
     <div class="bg-white/90 dark:bg-gray-800/90 rounded-3xl shadow-xl p-6 sm:p-8 text-center">
         <div class="text-red-500 text-4xl sm:text-5xl mb-3">🔥</div>
         <h2 class="text-base sm:text-lg font-semibold text-gray-700 dark:text-gray-200">Dream Fights Created</h2>
@@ -58,23 +62,37 @@
 <section class="bg-white/90 dark:bg-gray-900/90 rounded-3xl shadow-2xl border border-gray-200/30 dark:border-gray-700/40 p-4 sm:p-6 lg:p-8 mb-16 mx-3 sm:mx-8">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
         <h2 class="text-2xl sm:text-3xl font-extrabold text-red-500">Live Chat</h2>
-        <button onclick="window.toggleTheme()"
+        <button onclick="window.toggleTheme && window.toggleTheme()"
             class="px-3 sm:px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-sm font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition">
             Toggle Dark / Light
         </button>
     </div>
 
+    @if($isMuted)
+        <div class="mb-4 rounded-2xl bg-red-100 border border-red-300 text-red-800 px-4 py-3">
+            <div class="font-semibold">You are muted in live chat.</div>
+            <div>Until: {{ $user?->chat_muted_until?->format('Y-m-d H:i') }}</div>
+            <div>Reason: {{ $user?->chat_mute_reason }}</div>
+        </div>
+    @endif
+
     <div id="chat" class="flex flex-col h-[70vh] sm:h-96 rounded-2xl bg-gray-50 dark:bg-gray-800 overflow-hidden">
         <div id="messages" class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 scroll-smooth">
             @foreach($messages as $msg)
-                <div class="px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words relative" id="msg-{{ $msg->id }}">
+                <div
+                    class="px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words relative"
+                    id="msg-{{ $msg->id }}"
+                >
                     <span class="font-semibold text-red-600 dark:text-red-400">{{ $msg->user->name ?? 'Unknown User' }}:</span>
                     <span>{{ $msg->message }}</span>
+
                     @if(auth()->user()?->is_admin)
-                        <button type="button"
+                        <button
+                            type="button"
                             class="absolute top-2 right-3 text-gray-500 hover:text-red-600 delete-btn"
                             data-id="{{ $msg->id }}"
-                            title="Delete message">
+                            title="Delete message"
+                        >
                             🗑️
                         </button>
                     @endif
@@ -82,14 +100,29 @@
             @endforeach
         </div>
 
-        <form id="chat-form" action="{{ route('chat.send') }}" method="POST"
-            class="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 p-3 border-t border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900">
+        <form
+            id="chat-form"
+            action="{{ route('chat.send') }}"
+            method="POST"
+            class="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 p-3 border-t border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900"
+        >
             @csrf
-            <input id="chat-input" type="text" name="message" placeholder="Type a message..."
-                class="flex-1 p-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500"
-                required>
-            <button type="submit"
-                class="px-5 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold shadow-lg">
+
+            <input
+                id="chat-input"
+                type="text"
+                name="message"
+                placeholder="{{ $isMuted ? 'You are muted in chat' : 'Type a message...' }}"
+                class="flex-1 p-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-red-500 disabled:opacity-60 disabled:cursor-not-allowed"
+                required
+                @disabled($isMuted)
+            >
+
+            <button
+                type="submit"
+                class="px-5 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                @disabled($isMuted)
+            >
                 Send
             </button>
         </form>
@@ -104,10 +137,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('chat-input');
     const messages = document.getElementById('messages');
     const isAdmin = @json(auth()->user()?->is_admin);
+    const isMuted = @json($isMuted);
 
     function escapeHtml(text) {
         const div = document.createElement('div');
-        div.textContent = text;
+        div.textContent = text ?? '';
         return div.innerHTML;
     }
 
@@ -115,33 +149,50 @@ document.addEventListener('DOMContentLoaded', () => {
         messages.scrollTo({ top: messages.scrollHeight, behavior: 'smooth' });
     }
 
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const text = input.value.trim();
-        if (!text) return;
-        input.value = '';
-        input.focus();
+    scrollBottom();
 
-        try {
-            const response = await fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ message: text })
-            });
-            const data = await response.json();
-            if (!response.ok) alert(data.error || 'Error sending message.');
-        } catch (err) {
-            console.error(err);
-            alert('Connection error.');
-        }
-    });
+    if (form && !isMuted) {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+            input.focus();
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    let message = data.error || 'Error sending message.';
+
+                    if (data.reason) {
+                        message += `\nReason: ${data.reason}`;
+                    }
+
+                    alert(message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error.');
+            }
+        });
+    }
 
     document.addEventListener('click', async (e) => {
         if (!e.target.classList.contains('delete-btn')) return;
+
         const id = e.target.dataset.id;
         if (!confirm('Delete this message?')) return;
 
@@ -153,11 +204,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     'Accept': 'application/json'
                 }
             });
+
             const data = await res.json();
+
             if (res.ok && data.success) {
                 const el = document.getElementById(`msg-${id}`);
                 if (el) el.remove();
-            } else alert(data.error || 'Error deleting message.');
+            } else {
+                alert(data.error || 'Error deleting message.');
+            }
         } catch (err) {
             console.error(err);
             alert('Network error.');
@@ -168,10 +223,10 @@ document.addEventListener('DOMContentLoaded', () => {
         window.Echo.channel('chat')
             .listen('.message.sent', (e) => {
                 const div = document.createElement('div');
-                div.className = "px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words relative";
+                div.className = 'px-4 py-3 rounded-2xl shadow-md bg-gray-100 text-gray-900 dark:bg-gray-700 dark:text-white break-words relative';
                 div.id = 'msg-' + e.id;
                 div.innerHTML = `
-                    <span class='font-semibold text-red-600 dark:text-red-400'>${escapeHtml(e.user.name)}:</span>
+                    <span class="font-semibold text-red-600 dark:text-red-400">${escapeHtml(e.user.name)}:</span>
                     ${escapeHtml(e.message)}
                     ${isAdmin ? `<button type="button" class="absolute top-2 right-3 text-gray-500 hover:text-red-600 delete-btn" data-id="${e.id}" title="Delete message">🗑️</button>` : ''}
                 `;

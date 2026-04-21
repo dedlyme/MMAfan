@@ -1184,6 +1184,7 @@ class ComposerStaticInit344cd28afc35d76c1428ab3a96db45a0
         'App\\Console\\Commands\\SyncFighters' => __DIR__ . '/../..' . '/app/Console/Commands/SyncFighters.php',
         'App\\Events\\FightListUpdated' => __DIR__ . '/../..' . '/app/Events/FightListUpdated.php',
         'App\\Events\\FightUpdated' => __DIR__ . '/../..' . '/app/Events/FightUpdated.php',
+        'App\\Events\\MessageDeleted' => __DIR__ . '/../..' . '/app/Events/MessageDeleted.php',
         'App\\Events\\MessageSent' => __DIR__ . '/../..' . '/app/Events/MessageSent.php',
         'App\\Http\\Controllers\\Admin\\AdminRankingController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/AdminRankingController.php',
         'App\\Http\\Controllers\\Admin\\DivisionController' => __DIR__ . '/../..' . '/app/Http/Controllers/Admin/DivisionController.php',

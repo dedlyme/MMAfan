@@ -356,6 +356,7 @@ return array(
     'App\\Console\\Commands\\SyncFighters' => $baseDir . '/app/Console/Commands/SyncFighters.php',
     'App\\Events\\FightListUpdated' => $baseDir . '/app/Events/FightListUpdated.php',
     'App\\Events\\FightUpdated' => $baseDir . '/app/Events/FightUpdated.php',
+    'App\\Events\\MessageDeleted' => $baseDir . '/app/Events/MessageDeleted.php',
     'App\\Events\\MessageSent' => $baseDir . '/app/Events/MessageSent.php',
     'App\\Http\\Controllers\\Admin\\AdminRankingController' => $baseDir . '/app/Http/Controllers/Admin/AdminRankingController.php',
     'App\\Http\\Controllers\\Admin\\DivisionController' => $baseDir . '/app/Http/Controllers/Admin/DivisionController.php',
