@@ -38,11 +38,8 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        // PAGAIDĀM IZSLĒGTS TESTAM
-        // event(new \Illuminate\Auth\Events\Registered($user));
-
         Auth::login($user);
 
-        return redirect()->route('verification.notice');
+        return redirect()->route('dashboard');
     }
 }
